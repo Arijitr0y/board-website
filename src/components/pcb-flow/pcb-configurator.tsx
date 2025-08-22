@@ -65,10 +65,10 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
     if (name === "width" || name === "height") {
       onConfigChange({
         ...config,
-        size: { ...config.size, [name]: value === "" ? "" : Number(value) },
+        size: { ...config.size, [name]: value === "" ? 0 : Number(value) },
       });
     } else {
-      onConfigChange({ ...config, [name]: value === "" ? "" : Number(value) });
+      onConfigChange({ ...config, [name]: value === "" ? 0 : Number(value) });
     }
   };
 
@@ -78,6 +78,14 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
   
   const handleThicknessChange = (value: string) => {
     onConfigChange({ ...config, thickness: parseFloat(value) });
+  };
+  
+  const formatDimension = (value: number) => {
+    if (Number.isInteger(value)) {
+      return value.toString();
+    }
+    // Only show decimals if they are present
+    return value.toFixed(2).replace(/\.00$/, '');
   };
 
   return (
@@ -100,20 +108,22 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
                           type="number"
                           name="width"
                           placeholder="Width"
-                          value={config.size.width}
+                          value={formatDimension(config.size.width)}
                           onChange={handleInputChange}
                           className="w-24 bg-muted/50"
                           min="1"
+                          step="0.01"
                         />
                         <span>x</span>
                         <Input
                           type="number"
                           name="height"
                           placeholder="Height"
-                          value={config.size.height}
+                          value={formatDimension(config.size.height)}
                           onChange={handleInputChange}
                           className="w-24 bg-muted/50"
                           min="1"
+                          step="0.01"
                         />
                          <span>mm</span>
                     </div>
