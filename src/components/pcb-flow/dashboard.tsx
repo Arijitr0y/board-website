@@ -24,6 +24,12 @@ export function Dashboard() {
     material: "FR-4",
     thickness: 1.6,
     size: { width: 100, height: 100 },
+    baseMaterial: "FR4",
+    discreteDesign: 1,
+    deliveryFormat: "Single PCB",
+    maskColor: "Green",
+    pcbFinish: "HASL Finish",
+    copperThickness: "1 oz (35 um)",
   });
   const [quote, setQuote] = useState<number | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -149,15 +155,17 @@ export function Dashboard() {
   return (
     <div className="container mx-auto p-4 md:p-8">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="space-y-8 lg:col-span-2">
-          <GerberUpload
-            onFileSelect={handleFileSelect}
-            fileName={gerberFile?.name}
-          />
-          <PcbConfigurator
-            config={config}
-            onConfigChange={handleConfigChange}
-          />
+        <div className="lg:col-span-2 space-y-8">
+          <div className="space-y-4">
+             <GerberUpload
+                onFileSelect={handleFileSelect}
+                fileName={gerberFile?.name}
+              />
+              <PcbConfigurator
+                config={config}
+                onConfigChange={handleConfigChange}
+              />
+          </div>
         </div>
         <div className="space-y-8">
           <InstantQuote
