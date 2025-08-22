@@ -10,6 +10,13 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { PcbConfig } from "@/types";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 interface PcbConfiguratorProps {
   config: PcbConfig;
@@ -17,7 +24,8 @@ interface PcbConfiguratorProps {
 }
 
 const options = {
-  layers: ["2", "4", "6", "8", "10", "12", "14", "18", "20", "22"],
+  layers: ["1", "2"],
+  comingSoonLayers: ["4", "6", "8", "10", "12"],
   discreteDesigns: [1, 2, 3, 4, 5],
   deliveryFormats: ["Single PCB", "Panel By Customer", "Panel By LionCircuits"],
   thicknesses: [0.4, 0.8, 1.2, 1.6, 2.0, 2.4],
@@ -38,25 +46,49 @@ const OptionButton = ({
   selectedValue,
   onClick,
   className,
+  disabled = false,
+  tooltip,
 }: {
   value: string | number;
   selectedValue: string | number;
   onClick: (value: string | number) => void;
   className?: string;
-}) => (
-  <button
-    onClick={() => onClick(value)}
-    className={cn(
-      "px-4 py-1.5 border rounded-md text-sm transition-colors",
-      selectedValue === value
-        ? "bg-primary/10 border-primary text-primary font-semibold"
-        : "border-input hover:bg-muted/50",
-      className
-    )}
-  >
-    {value}
-  </button>
-);
+  disabled?: boolean;
+  tooltip?: string;
+}) => {
+  const button = (
+    <button
+      onClick={() => !disabled && onClick(value)}
+      disabled={disabled}
+      className={cn(
+        "px-4 py-1.5 border rounded-md text-sm transition-colors",
+        selectedValue === value
+          ? "bg-primary/10 border-primary text-primary font-semibold"
+          : "border-input hover:bg-muted/50",
+        disabled && "opacity-50 cursor-not-allowed hover:bg-transparent",
+        className
+      )}
+    >
+      {value}
+    </button>
+  );
+
+  if (tooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>{button}</TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return button;
+};
+
 
 
 export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps) {
@@ -83,9 +115,10 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
   const handleDimensionBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === "width" || name === "height") {
+      const numericValue = parseFloat(value);
       onConfigChange({
         ...config,
-        size: { ...config.size, [name]: Number(value) || 0 },
+        size: { ...config.size, [name]: isNaN(numericValue) ? "" : numericValue.toFixed(2) },
       });
     }
   };
@@ -103,6 +136,7 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
                 <ConfigRow label="Layers">
                     <div className="flex flex-wrap gap-2">
                         {options.layers.map(l => <OptionButton key={l} value={l} selectedValue={config.layers} onClick={(val) => handleOptionChange("layers", val as string)} />)}
+                         {options.comingSoonLayers.map(l => <OptionButton key={l} value={l} selectedValue={config.layers} onClick={() => {}} disabled={true} tooltip="Coming Soon" />)}
                     </div>
                 </ConfigRow>
                 <ConfigRow label="Dimensions">
