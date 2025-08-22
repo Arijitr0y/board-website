@@ -167,37 +167,37 @@ export function Dashboard() {
     <div className="container mx-auto p-4 md:p-8">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-8">
-          <div className="space-y-4">
-             <GerberUpload
-                onFileSelect={handleFileSelect}
-                onFileReset={handleFileReset}
-                fileName={gerberFile?.name}
-              />
-              <PcbConfigurator
-                config={config}
-                onConfigChange={handleConfigChange}
-              />
-          </div>
-        </div>
-        <div className="space-y-8">
-          <InstantQuote
-            quote={quote}
-            quantity={config.quantity}
-            buildTime={buildTime}
-            shippingMethod={shippingMethod}
-            onBuildTimeChange={handleBuildTimeChange}
-            onShippingMethodChange={handleShippingMethodChange}
-            onPlaceOrder={handlePlaceOrder}
-            disabled={!gerberFile || isAnalyzing}
+          <GerberUpload
+            onFileSelect={handleFileSelect}
+            onFileReset={handleFileReset}
+            fileName={gerberFile?.name}
           />
-          {(isAnalyzing || analysisResult || error) && (
-            <DfmAnalysis
-              isLoading={isAnalyzing}
-              result={analysisResult}
-              error={error}
+          <PcbConfigurator
+            config={config}
+            onConfigChange={handleConfigChange}
+          />
+        </div>
+        <div className="relative space-y-8">
+          <div className="sticky top-8 space-y-8">
+            <InstantQuote
+              quote={quote}
+              quantity={config.quantity}
+              buildTime={buildTime}
+              shippingMethod={shippingMethod}
+              onBuildTimeChange={handleBuildTimeChange}
+              onShippingMethodChange={handleShippingMethodChange}
+              onPlaceOrder={handlePlaceOrder}
+              disabled={!gerberFile || isAnalyzing}
             />
-          )}
-          {orderPlaced && <OrderTracking />}
+            {(isAnalyzing || analysisResult || error) && (
+              <DfmAnalysis
+                isLoading={isAnalyzing}
+                result={analysisResult}
+                error={error}
+              />
+            )}
+            {orderPlaced && <OrderTracking />}
+          </div>
         </div>
       </div>
     </div>
