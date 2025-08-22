@@ -53,8 +53,8 @@ export function Dashboard() {
         const newConfig = {
           ...config,
           size: {
-            width: Math.round(gerberAnalysis.dimensions.widthMM),
-            height: Math.round(gerberAnalysis.dimensions.heightMM),
+            width: parseFloat(gerberAnalysis.dimensions.widthMM.toFixed(2)),
+            height: parseFloat(gerberAnalysis.dimensions.heightMM.toFixed(2)),
           },
           layers: String(gerberAnalysis.layerCount),
         };
@@ -107,7 +107,7 @@ export function Dashboard() {
     // Dummy calculation
     const basePrice = 50;
     const layerPrice = parseInt(newConfig.layers, 10) * 10;
-    const sizePrice = (newConfig.size.width * newConfig.size.height) / 100;
+    const sizePrice = (Number(newConfig.size.width) * Number(newConfig.size.height)) / 100;
     const quantityMultiplier = Math.log10(newConfig.quantity) + 1;
     let total = (basePrice + layerPrice + sizePrice) * quantityMultiplier;
 

@@ -5,8 +5,8 @@ export interface PcbConfig {
   material: string;
   thickness: number;
   size: {
-    width: number;
-    height: number;
+    width: number | string;
+    height: number | string;
   };
   baseMaterial: string;
   discreteDesign: number;

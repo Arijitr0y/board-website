@@ -65,7 +65,7 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
     if (name === "width" || name === "height") {
       onConfigChange({
         ...config,
-        size: { ...config.size, [name]: value === "" ? 0 : Number(value) },
+        size: { ...config.size, [name]: value === "" ? "" : value },
       });
     } else {
       onConfigChange({ ...config, [name]: value === "" ? 0 : Number(value) });
@@ -80,13 +80,16 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
     onConfigChange({ ...config, thickness: parseFloat(value) });
   };
   
-  const formatDimension = (value: number) => {
-    if (Number.isInteger(value)) {
-      return value.toString();
+  const handleDimensionBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === "width" || name === "height") {
+      onConfigChange({
+        ...config,
+        size: { ...config.size, [name]: Number(value) || 0 },
+      });
     }
-    // Only show decimals if they are present
-    return value.toFixed(2).replace(/\.00$/, '');
   };
+
 
   return (
     <div className="space-y-6">
@@ -108,8 +111,9 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
                           type="number"
                           name="width"
                           placeholder="Width"
-                          value={formatDimension(config.size.width)}
+                          value={config.size.width}
                           onChange={handleInputChange}
+                          onBlur={handleDimensionBlur}
                           className="w-24 bg-muted/50"
                           min="1"
                           step="0.01"
@@ -119,8 +123,9 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
                           type="number"
                           name="height"
                           placeholder="Height"
-                          value={formatDimension(config.size.height)}
+                          value={config.size.height}
                           onChange={handleInputChange}
+                          onBlur={handleDimensionBlur}
                           className="w-24 bg-muted/50"
                           min="1"
                           step="0.01"
