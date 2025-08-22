@@ -165,6 +165,14 @@ export function Dashboard() {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
+       <div className="mb-8 text-center">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          Instant PCB Quote
+        </h2>
+        <p className="mt-2 text-muted-foreground">
+          Upload your files, configure your board, and get an instant price.
+        </p>
+      </div>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-8">
           <GerberUpload
