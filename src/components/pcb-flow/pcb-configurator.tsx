@@ -36,6 +36,14 @@ const options = {
   copperThicknesses: ["1 oz (35 um)", "2 oz (70 um)", "3 oz (105 um)"],
 };
 
+const maskColorMap: { [key: string]: string } = {
+  Green: "bg-green-500",
+  White: "bg-white",
+  Red: "bg-red-500",
+  Blue: "bg-blue-500",
+  Black: "bg-black",
+};
+
 const ConfigRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div className="grid grid-cols-3 items-center">
         <Label className="text-muted-foreground">{label}</Label>
@@ -102,7 +110,7 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
         size: { ...config.size, [name]: value === "" ? "" : value },
       });
     } else {
-      onConfigChange({ ...config, [name]: value === "" ? 0 : Number(value) });
+      onConfigChange({ ...config, [name]: value === "" ? "" : Number(value) });
     }
   };
 
@@ -163,7 +171,7 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
                           value={config.size.width}
                           onChange={handleInputChange}
                           onBlur={handleDimensionBlur}
-                          className="w-24 bg-muted/50"
+                          className="w-24"
                           min="1"
                           step="0.01"
                         />
@@ -175,7 +183,7 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
                           value={config.size.height}
                           onChange={handleInputChange}
                           onBlur={handleDimensionBlur}
-                          className="w-24 bg-muted/50"
+                          className="w-24"
                           min="1"
                           step="0.01"
                         />
@@ -221,7 +229,21 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
                 </ConfigRow>
                  <ConfigRow label="Mask Color">
                     <div className="flex flex-wrap gap-2">
-                        {options.maskColors.map(c => <OptionButton key={c} value={c} selectedValue={config.maskColor} onClick={(val) => handleOptionChange("maskColor", val as string)} />)}
+                        {options.maskColors.map(c => (
+                           <button
+                              key={c}
+                              onClick={() => handleOptionChange("maskColor", c)}
+                              className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 border rounded-md text-sm transition-colors",
+                                config.maskColor === c
+                                ? "bg-primary/10 border-primary text-primary font-semibold"
+                                : "border-input hover:bg-muted/50",
+                              )}
+                            >
+                              <span className={cn("w-4 h-4 rounded-full border", maskColorMap[c])}></span>
+                              {c}
+                            </button>
+                        ))}
                     </div>
                 </ConfigRow>
                  <ConfigRow label="PCB Finish">
