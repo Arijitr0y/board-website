@@ -197,6 +197,12 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
             </CardContent>
         </Card>
         <Card>
+            <CardHeader>
+                <CardTitle>3. Additional Specifications</CardTitle>
+                <CardDescription>
+                  Provide additional details for the manufacturing process.
+                </CardDescription>
+            </CardHeader>
             <CardContent className="p-6 space-y-4">
                  <ConfigRow label="Discrete Design">
                     <div className="flex flex-wrap gap-2">
