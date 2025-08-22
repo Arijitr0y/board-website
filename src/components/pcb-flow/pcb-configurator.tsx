@@ -4,10 +4,12 @@
 import {
   Card,
   CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { PcbConfig } from "@/types";
 import { cn } from "@/lib/utils";
 import {
@@ -134,6 +136,12 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
   return (
     <div className="space-y-6">
         <Card>
+            <CardHeader>
+              <CardTitle>2. Configure Your PCB</CardTitle>
+              <CardDescription>
+                Specify the details for your board. Dimensions and layer count are auto-detected.
+              </CardDescription>
+            </CardHeader>
             <CardContent className="p-6 space-y-4">
                 <ConfigRow label="Base Material">
                     <div className="flex gap-2">
