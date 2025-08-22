@@ -122,6 +122,13 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
       });
     }
   };
+  
+  const handleQuantityBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    if (isNaN(value) || value < 5) {
+      onConfigChange({ ...config, quantity: 5 });
+    }
+  };
 
 
   return (
@@ -174,8 +181,9 @@ export function PcbConfigurator({ config, onConfigChange }: PcbConfiguratorProps
                         type="number"
                         value={config.quantity}
                         onChange={handleInputChange}
+                        onBlur={handleQuantityBlur}
                         className="w-24"
-                        min="1"
+                        min="5"
                       />
                 </ConfigRow>
             </CardContent>
