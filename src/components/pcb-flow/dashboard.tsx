@@ -14,23 +14,25 @@ import { InstantQuote } from "./instant-quote";
 import { OrderTracking } from "./order-tracking";
 import { useToast } from "@/hooks/use-toast";
 
+const initialConfig: PcbConfig = {
+  layers: "2",
+  quantity: 10,
+  material: "FR-4",
+  thickness: 1.6,
+  size: { width: 100, height: 100 },
+  baseMaterial: "FR4",
+  discreteDesign: 1,
+  deliveryFormat: "Single PCB",
+  maskColor: "Green",
+  pcbFinish: "HASL Finish",
+  copperThickness: "1 oz (35 um)",
+};
+
 export function Dashboard() {
   const { toast } = useToast();
   const [gerberFile, setGerberFile] = useState<File | null>(null);
   const [gerberDataUri, setGerberDataUri] = useState<string | null>(null);
-  const [config, setConfig] = useState<PcbConfig>({
-    layers: "2",
-    quantity: 10,
-    material: "FR-4",
-    thickness: 1.6,
-    size: { width: 100, height: 100 },
-    baseMaterial: "FR4",
-    discreteDesign: 1,
-    deliveryFormat: "Single PCB",
-    maskColor: "Green",
-    pcbFinish: "HASL Finish",
-    copperThickness: "1 oz (35 um)",
-  });
+  const [config, setConfig] = useState<PcbConfig>(initialConfig);
   const [quote, setQuote] = useState<number | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] =
@@ -98,6 +100,15 @@ export function Dashboard() {
     };
     reader.readAsDataURL(file);
   };
+  
+  const handleFileReset = () => {
+    setGerberFile(null);
+    setGerberDataUri(null);
+    setAnalysisResult(null);
+    setError(null);
+    setOrderPlaced(false);
+    setConfig(initialConfig);
+  };
 
   const calculateQuote = (
     newConfig: PcbConfig,
@@ -159,6 +170,7 @@ export function Dashboard() {
           <div className="space-y-4">
              <GerberUpload
                 onFileSelect={handleFileSelect}
+                onFileReset={handleFileReset}
                 fileName={gerberFile?.name}
               />
               <PcbConfigurator
