@@ -1,9 +1,10 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { AnalyzeGerberForDfmIssuesOutput } from "@/ai/flows/dfm-analysis";
 import { analyzeGerberForDfmIssues } from "@/ai/flows/dfm-analysis";
-import type { PcbConfig } from "@/types";
+import type { PcbConfig, BuildTime, ShippingMethod } from "@/types";
 import { analyzeGerberFiles } from "@/lib/gerber";
 
 import { PcbConfigurator } from "./pcb-configurator";
@@ -30,6 +31,8 @@ export function Dashboard() {
     useState<AnalyzeGerberForDfmIssuesOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [buildTime, setBuildTime] = useState<BuildTime>("5-6");
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>("standard");
 
   const handleFileSelect = async (file: File) => {
     setGerberFile(file);
@@ -50,7 +53,6 @@ export function Dashboard() {
           layers: String(gerberAnalysis.layerCount),
         };
         setConfig(newConfig);
-        calculateQuote(newConfig);
       }
     } catch (err) {
       console.error("Failed to analyze gerber files for dimensions/layers", err);
@@ -91,19 +93,42 @@ export function Dashboard() {
     reader.readAsDataURL(file);
   };
 
-  const calculateQuote = (newConfig: PcbConfig) => {
+  const calculateQuote = (
+    newConfig: PcbConfig,
+    newBuildTime: BuildTime,
+    newShippingMethod: ShippingMethod
+  ) => {
     // Dummy calculation
     const basePrice = 50;
     const layerPrice = parseInt(newConfig.layers, 10) * 10;
     const sizePrice = (newConfig.size.width * newConfig.size.height) / 100;
     const quantityMultiplier = Math.log10(newConfig.quantity) + 1;
-    const total = (basePrice + layerPrice + sizePrice) * quantityMultiplier;
+    let total = (basePrice + layerPrice + sizePrice) * quantityMultiplier;
+
+    if (newBuildTime === "4-5") {
+      total *= 1.2; // 20% faster build time
+    }
+
+    if (newShippingMethod === "plus") {
+      total += 20; // flat fee for plus shipping
+    }
+
     setQuote(total);
   };
 
   const handleConfigChange = (newConfig: PcbConfig) => {
     setConfig(newConfig);
-    calculateQuote(newConfig);
+    calculateQuote(newConfig, buildTime, shippingMethod);
+  };
+  
+  const handleBuildTimeChange = (newBuildTime: BuildTime) => {
+    setBuildTime(newBuildTime);
+    calculateQuote(config, newBuildTime, shippingMethod);
+  };
+  
+  const handleShippingMethodChange = (newShippingMethod: ShippingMethod) => {
+    setShippingMethod(newShippingMethod);
+    calculateQuote(config, buildTime, newShippingMethod);
   };
 
   const handlePlaceOrder = () => {
@@ -117,9 +142,9 @@ export function Dashboard() {
   };
 
   // Initial quote calculation
-  useState(() => {
-    calculateQuote(config);
-  });
+  useEffect(() => {
+    calculateQuote(config, buildTime, shippingMethod);
+  }, [config, buildTime, shippingMethod]);
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -137,6 +162,11 @@ export function Dashboard() {
         <div className="space-y-8">
           <InstantQuote
             quote={quote}
+            quantity={config.quantity}
+            buildTime={buildTime}
+            shippingMethod={shippingMethod}
+            onBuildTimeChange={handleBuildTimeChange}
+            onShippingMethodChange={handleShippingMethodChange}
             onPlaceOrder={handlePlaceOrder}
             disabled={!gerberFile || isAnalyzing}
           />
