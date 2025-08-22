@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { AnalyzeGerberForDfmIssuesOutput } from "@/ai/flows/dfm-analysis";
 import { analyzeGerberForDfmIssues } from "@/ai/flows/dfm-analysis";
 import type { PcbConfig } from "@/types";
+import { analyzeGerberFiles } from "@/lib/gerber";
 
 import { PcbConfigurator } from "./pcb-configurator";
 import { GerberUpload } from "./gerber-upload";
@@ -36,6 +37,24 @@ export function Dashboard() {
     setError(null);
     setIsAnalyzing(true);
     setOrderPlaced(false);
+
+    try {
+      const gerberAnalysis = await analyzeGerberFiles([file]);
+      if (gerberAnalysis.dimensions) {
+        const newConfig = {
+          ...config,
+          size: {
+            width: Math.round(gerberAnalysis.dimensions.widthMM),
+            height: Math.round(gerberAnalysis.dimensions.heightMM),
+          },
+          layers: String(gerberAnalysis.layerCount),
+        };
+        setConfig(newConfig);
+        calculateQuote(newConfig);
+      }
+    } catch (err) {
+      console.error("Failed to analyze gerber files for dimensions/layers", err);
+    }
 
     const reader = new FileReader();
     reader.onload = async (e) => {
