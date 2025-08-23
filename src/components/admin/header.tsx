@@ -12,7 +12,9 @@ import {
     Users2,
     Search,
     PanelLeft,
-    ChevronDown
+    ChevronDown,
+    Moon,
+    Sun
   } from "lucide-react"
 
 import {
@@ -30,10 +32,12 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "../ui/sidebar";
 import { useAdminRole } from "@/context/admin-role-context";
+import { useTheme } from "next-themes";
 
 
 export function Header() {
     const { role, setRole } = useAdminRole();
+    const { setTheme } = useTheme()
 
     return (
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -113,6 +117,27 @@ export function Header() {
                     </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
              </DropdownMenu>
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon">
+                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="sr-only">Toggle theme</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setTheme("light")}>
+                    Light
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    Dark
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("system")}>
+                    System
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
 
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground hidden" />
             <Input
