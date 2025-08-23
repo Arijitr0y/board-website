@@ -32,7 +32,7 @@ export function AdminSidebar() {
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton href="#" tooltip="Orders" isActive>
+                    <SidebarMenuButton href="/admin/orders" tooltip="Orders" isActive>
                         <ShoppingCart className="h-5 w-5" />
                         <span className="group-data-[collapsible=icon]:hidden">Orders</span>
                     </SidebarMenuButton>
