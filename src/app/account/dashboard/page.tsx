@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 
-type View = 'messages' | 'pcbReviews' | 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
+type View = 'messages' | 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
 
 const SidebarNavItem = ({
   icon,
@@ -189,18 +189,6 @@ const MessagesView = () => {
         </Card>
     );
 };
-
-const PcbReviewsView = () => (
-    <Card>
-        <CardHeader>
-            <CardTitle>PCB Reviews</CardTitle>
-            <CardDescription>Review your PCB designs and analysis reports.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p>PCB Reviews content goes here.</p>
-        </CardContent>
-    </Card>
-);
 
 const OrdersView = () => {
     const router = useRouter();
@@ -532,8 +520,6 @@ export default function AccountDashboardPage() {
     switch (activeView) {
       case 'messages':
         return <MessagesView />;
-      case 'pcbReviews':
-        return <PcbReviewsView />;
       case 'orders':
         return <OrdersView />;
       case 'profile':
@@ -571,12 +557,6 @@ export default function AccountDashboardPage() {
                                    isActive={activeView === 'messages'}
                                    onClick={() => setActiveView('messages')}
                                    count={1}
-                                />
-                               <SidebarNavItem
-                                   icon={<ClipboardCheck className="h-5 w-5" />}
-                                   title="PCB Reviews"
-                                   isActive={activeView === 'pcbReviews'}
-                                   onClick={() => setActiveView('pcbReviews')}
                                 />
                                <SidebarNavItem 
                                    icon={<Package className="h-5 w-5" />}
