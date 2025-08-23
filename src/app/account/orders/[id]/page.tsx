@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Check, Download, FileText, Package, Rocket, Truck, User, Wrench, Clock } from "lucide-react";
+import { ArrowLeft, Check, Download, FileText, Package, Rocket, Truck, User, Wrench, Clock, Search } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -33,7 +33,7 @@ const getOrderDetails = (id: string) => {
             shippingAddress: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India',
             history: [
                 { status: 'In Fabrication', date: '2024-07-21 09:00 AM', description: 'PCB fabrication has started.' },
-                { status: 'Processing', date: '2024-07-20 11:00 AM', description: 'Your design files are being reviewed.' },
+                { status: 'PCB in Review', date: '2024-07-20 11:00 AM', description: 'Your design files are being reviewed.' },
                 { status: 'Order Placed', date: '2024-07-20 10:30 AM', description: 'Your order has been successfully placed.' },
             ]
         },
@@ -57,6 +57,7 @@ const getOrderDetails = (id: string) => {
             history: [
                  { status: 'Shipped', date: '2024-07-18 05:30 PM', description: 'Your order has been shipped via DTDC.' },
                  { status: 'In Fabrication', date: '2024-07-16 11:00 AM', description: 'PCB fabrication has completed.' },
+                 { status: 'PCB in Review', date: '2024-07-15 03:00 PM', description: 'Your design files have been approved.' },
                  { status: 'Order Placed', date: '2024-07-15 02:00 PM', description: 'Your order has been successfully placed.' },
             ]
         },
@@ -80,6 +81,8 @@ const getOrderDetails = (id: string) => {
             history: [
                 { status: 'Delivered', date: '2024-07-01 12:45 PM', description: 'Package delivered.' },
                 { status: 'Shipped', date: '2024-06-29 08:00 AM', description: 'Your order has been shipped.' },
+                { status: 'In Fabrication', date: '2024-06-28 02:00 PM', description: 'PCB fabrication has completed.' },
+                { status: 'PCB in Review', date: '2024-06-28 10:00 AM', description: 'Your design files have been approved.' },
                 { status: 'Order Placed', date: '2024-06-28 09:30 AM', description: 'Your order has been placed.' },
             ]
         },
@@ -93,7 +96,7 @@ const getOrderDetails = (id: string) => {
 const StatusTimeline = ({ currentStatus }: { currentStatus: string }) => {
     const statuses = [
       { name: "Order Placed", icon: Check },
-      { name: "Processing", icon: Wrench },
+      { name: "PCB in Review", icon: Search },
       { name: "In Fabrication", icon: Rocket },
       { name: "Shipped", icon: Truck },
       { name: "Delivered", icon: Package },
