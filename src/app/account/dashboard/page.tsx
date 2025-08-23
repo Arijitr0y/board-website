@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -42,28 +42,75 @@ const SidebarNavItem = ({
   </button>
 );
 
-const OrdersView = () => (
-    <Card>
-        <CardHeader>
-            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                <div>
-                    <CardTitle>My Orders</CardTitle>
-                    <CardDescription>Track, view history, and manage your PCB orders.</CardDescription>
+const OrdersView = () => {
+    const orders = [
+        { id: 'PCB-2024-003', projectName: 'IoT Weather Station', gerberName: 'weather-station-v2.zip', date: '2024-07-20', status: 'In Fabrication' },
+        { id: 'PCB-2024-002', projectName: 'Audio Amplifier Board', gerberName: 'amp-board-rev-b.zip', date: '2024-07-15', status: 'Shipped' },
+        { id: 'PCB-2024-001', projectName: 'LED Matrix Display', gerberName: 'led-display-controller.zip', date: '2024-06-28', status: 'Delivered' },
+    ];
+
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'In Fabrication':
+                return <Badge variant="secondary" className="bg-orange-100 text-orange-800">{status}</Badge>;
+            case 'Shipped':
+                return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{status}</Badge>;
+            case 'Delivered':
+                return <Badge variant="secondary" className="bg-green-100 text-green-800">{status}</Badge>;
+            default:
+                return <Badge variant="outline">{status}</Badge>;
+        }
+    };
+    
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                    <div>
+                        <CardTitle>My Orders</CardTitle>
+                        <CardDescription>Track, view history, and manage your PCB orders.</CardDescription>
+                    </div>
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Search by order ID or name..." className="pl-8 w-full md:w-64" />
+                    </div>
                 </div>
-                <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search by order ID or name..." className="pl-8 w-full md:w-64" />
-                </div>
-            </div>
-        </CardHeader>
-        <CardContent>
-            <div className="text-center py-12 text-muted-foreground">
-                <p>No orders found.</p>
-                <Button variant="link" className="mt-2">Start a new order</Button>
-            </div>
-        </CardContent>
-    </Card>
-);
+            </CardHeader>
+            <CardContent>
+               <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Project</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {orders.map((order) => (
+                            <TableRow key={order.id}>
+                                <TableCell className="font-medium">{order.id}</TableCell>
+                                <TableCell>
+                                    <div className="font-medium">{order.projectName}</div>
+                                    <div className="text-xs text-muted-foreground">{order.gerberName}</div>
+                                </TableCell>
+                                <TableCell>{getStatusBadge(order.status)}</TableCell>
+                                <TableCell>{order.date}</TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="outline" size="sm">
+                                        <Truck className="mr-2 h-4 w-4" />
+                                        Track Order
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+};
 
 const ProfileView = () => (
     <Card>
@@ -281,7 +328,7 @@ const SettingsView = () => (
 );
 
 export default function AccountDashboardPage() {
-  const [activeView, setActiveView] = useState<View>('profile');
+  const [activeView, setActiveView] = useState<View>('orders');
 
   const renderContent = () => {
     switch (activeView) {
