@@ -546,7 +546,7 @@ const SidebarMenuButton = React.forwardRef<
     ref
   ) => {
     const { isMobile, state } = useSidebar();
-    const Comp = asChild ? Slot : href ? 'a' : 'button';
+    const Comp = asChild ? Slot : "button";
 
     const buttonContent = (
         <Comp
@@ -555,15 +555,35 @@ const SidebarMenuButton = React.forwardRef<
             data-size={size}
             data-active={isActive}
             className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-            href={href}
             {...props}
         >
             {children}
         </Comp>
     );
 
-    if (!tooltip) {
-      return href ? <Link href={href} passHref>{buttonContent}</Link> : buttonContent;
+    let trigger: React.ReactElement;
+    if (href) {
+        trigger = <Link href={href} legacyBehavior passHref><Comp {...props} ref={ref as any} className={cn(sidebarMenuButtonVariants({ variant, size }), className)} data-sidebar="menu-button" data-size={size} data-active={isActive}>{children}</Comp></Link>
+        if (asChild) {
+            trigger = <Link href={href} legacyBehavior passHref>{buttonContent}</Link>
+        } else {
+            trigger = <Link href={href} legacyBehavior passHref><a ref={ref} {...props} className={cn(sidebarMenuButtonVariants({ variant, size }), className)} data-sidebar="menu-button" data-size={size} data-active={isActive}>{children}</a></Link>
+        }
+    } else {
+        trigger = buttonContent;
+    }
+    
+    if(!tooltip) {
+        return href ? <Link href={href} passHref asChild><button {...props} ref={ref} className={cn(sidebarMenuButtonVariants({ variant, size }), className)}>{children}</button></Link> : buttonContent;
+    }
+
+    if (href) {
+        const button = <Comp {...props} ref={ref as any} data-sidebar="menu-button" data-size={size} data-active={isActive} className={cn(sidebarMenuButtonVariants({ variant, size }), className)}>{children}</Comp>
+        trigger = <Link href={href} passHref legacyBehavior>
+           {button}
+        </Link>;
+    } else {
+        trigger = buttonContent;
     }
     
     if (typeof tooltip === "string") {
@@ -571,8 +591,6 @@ const SidebarMenuButton = React.forwardRef<
         children: tooltip,
       }
     }
-
-    const trigger = href ? <Link href={href} passHref>{buttonContent}</Link> : buttonContent;
 
 
     return (
