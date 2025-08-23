@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck, Mail, FileCheck } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck, Mail, FileCheck, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 
 type View = 'messages' | 'pcbReviews' | 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
 
@@ -51,88 +54,137 @@ const SidebarNavItem = ({
   </button>
 );
 
-const MessageItem = ({ icon, title, description, time, isUnread, action }: { icon: React.ReactNode, title: string, description: string, time: string, isUnread: boolean, action?: React.ReactNode }) => (
-    <div className={cn("flex items-start gap-4 p-4 border-b last:border-b-0", isUnread && "bg-primary/5")}>
-        <div className="text-muted-foreground mt-1">{icon}</div>
-        <div className="flex-grow">
-            <p className="font-semibold">{title}</p>
-            <p className="text-sm text-muted-foreground">{description}</p>
-            <p className="text-xs text-muted-foreground mt-1">{time}</p>
-        </div>
-        {action && <div>{action}</div>}
-    </div>
-);
-
 
 const MessagesView = () => {
-    const orderUpdates = [
-        { title: 'Order Shipped: PCB-2024-002', description: 'Your order for "Audio Amplifier Board" has been shipped.', time: '3 days ago', isUnread: false, href: '/account/orders/PCB-2024-002' },
-        { title: 'Order Delivered: PCB-2024-001', description: 'Your order for "LED Matrix Display" has been delivered.', time: '2 weeks ago', isUnread: false, href: '/account/orders/PCB-2024-001' },
+    const conversations = [
+        {
+            id: 1,
+            subject: 'DFM Review: IoT Weather Station',
+            relatedTo: 'DFM-2024-001',
+            lastMessage: 'Sounds good, please proceed.',
+            time: '2h ago',
+            isUnread: false,
+            messages: [
+                { sender: 'M', text: 'Hi John, we noticed a potential issue with the trace clearances on your "IoT Weather Station" design. We recommend increasing the spacing to avoid shorts during fabrication. Do you approve this change?', time: '1d ago' },
+                { sender: 'U', text: 'Thanks for catching that. Yes, please go ahead and make the recommended adjustment.', time: '12h ago' },
+                { sender: 'M', text: 'Excellent, we will proceed with the updated design. Fabrication will begin shortly.', time: '11h ago' },
+                { sender: 'U', text: 'Sounds good, please proceed.', time: '2h ago' },
+            ],
+        },
+        {
+            id: 2,
+            subject: 'Order Update: PCB-2024-002',
+            relatedTo: 'PCB-2024-002',
+            lastMessage: 'Great, thanks for the update!',
+            time: '3d ago',
+            isUnread: true,
+            messages: [
+                 { sender: 'M', text: 'Your order PCB-2024-002 for the "Audio Amplifier Board" has been shipped. You can find the tracking details on the order page.', time: '3d ago' },
+                 { sender: 'U', text: 'Great, thanks for the update!', time: '3d ago' },
+            ]
+        },
+        {
+            id: 3,
+            subject: 'Payment Query: Invoice INV-2023-001',
+            relatedTo: 'INV-2023-001',
+            lastMessage: 'Yes, that resolves it. Thank you.',
+            time: '1w ago',
+            isUnread: false,
+            messages: [
+                { sender: 'U', text: 'Hi, I have a question about a charge on invoice INV-2023-001.', time: '1w ago' },
+                { sender: 'M', text: 'Of course, I can help with that. Could you please specify the line item you are referring to?', time: '1w ago' },
+                { sender: 'U', text: 'It was for the expedited shipping fee, I thought it was included.', time: '1w ago' },
+                { sender: 'M', text: 'I see. The quote was updated to include that when the 2-day shipping was selected. I can send over the revised quote for your records.', time: '6d ago' },
+                { sender: 'U', text: 'Yes, that resolves it. Thank you.', time: '6d ago' },
+            ]
+        },
     ];
-    const dfmAlerts = [
-         { title: 'DFM Review Passed: IoT Weather Station', description: 'No critical issues found in your design "weather-station-v2.zip".', time: '1 day ago', isUnread: true, href: '#' },
-    ];
-    const allMessages = [...orderUpdates, ...dfmAlerts].sort(() => Math.random() - 0.5); // Random sort for demo
+
+    const [selectedConversation, setSelectedConversation] = useState(conversations[0]);
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Messages</CardTitle>
-                <CardDescription>View your notifications, DFM alerts, and order updates.</CardDescription>
+                <CardDescription>Communicate with our team about your orders and designs.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Tabs defaultValue="all">
-                    <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="all">All ({allMessages.length})</TabsTrigger>
-                        <TabsTrigger value="updates">Order Updates ({orderUpdates.length})</TabsTrigger>
-                        <TabsTrigger value="dfm">DFM Alerts ({dfmAlerts.length})</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="all" className="mt-4">
-                        <div className="border rounded-lg">
-                           {allMessages.map(msg => (
-                               <MessageItem
-                                   key={msg.title}
-                                   icon={msg.title.startsWith('DFM') ? <FileCheck className="h-5 w-5" /> : <Package className="h-5 w-5" />}
-                                   title={msg.title}
-                                   description={msg.description}
-                                   time={msg.time}
-                                   isUnread={msg.isUnread}
-                                   action={<Button variant="outline" size="sm" asChild><Link href={msg.href}>View</Link></Button>}
-                               />
-                           ))}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[600px] border rounded-lg">
+                    {/* Conversation List */}
+                    <div className="md:col-span-1 border-r overflow-y-auto">
+                        <div className="p-2">
+                           <Input placeholder="Search messages..." className="w-full" />
                         </div>
-                    </TabsContent>
-                    <TabsContent value="updates" className="mt-4">
-                         <div className="border rounded-lg">
-                           {orderUpdates.map(msg => (
-                               <MessageItem
-                                   key={msg.title}
-                                   icon={<Package className="h-5 w-5" />}
-                                   title={msg.title}
-                                   description={msg.description}
-                                   time={msg.time}
-                                   isUnread={msg.isUnread}
-                                   action={<Button variant="outline" size="sm" asChild><Link href={msg.href}>View Order</Link></Button>}
-                               />
-                           ))}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="dfm" className="mt-4">
-                         <div className="border rounded-lg">
-                           {dfmAlerts.map(msg => (
-                               <MessageItem
-                                   key={msg.title}
-                                   icon={<FileCheck className="h-5 w-5" />}
-                                   title={msg.title}
-                                   description={msg.description}
-                                   time={msg.time}
-                                   isUnread={msg.isUnread}
-                                   action={<Button variant="outline" size="sm" asChild><Link href={msg.href}>View Analysis</Link></Button>}
-                               />
-                           ))}
-                        </div>
-                    </TabsContent>
-                </Tabs>
+                        <nav className="flex flex-col p-2">
+                            {conversations.map(conv => (
+                                <button key={conv.id}
+                                    onClick={() => setSelectedConversation(conv)}
+                                    className={cn(
+                                        "p-3 text-left rounded-lg transition-colors w-full",
+                                        selectedConversation.id === conv.id ? "bg-muted" : "hover:bg-muted/50"
+                                    )}>
+                                    <div className="flex justify-between items-start">
+                                        <p className="font-semibold text-sm">{conv.subject}</p>
+                                        {conv.isUnread && <span className="h-2 w-2 rounded-full bg-primary mt-1"></span>}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground truncate">{conv.lastMessage}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{conv.time}</p>
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
+
+                    {/* Message View */}
+                    <div className="md:col-span-2 flex flex-col">
+                        {selectedConversation ? (
+                            <>
+                                <div className="p-4 border-b">
+                                    <h3 className="font-semibold">{selectedConversation.subject}</h3>
+                                    <p className="text-sm text-muted-foreground">Related to: {selectedConversation.relatedTo}</p>
+                                </div>
+                                <div className="flex-grow p-4 space-y-4 overflow-y-auto">
+                                    {selectedConversation.messages.map((msg, index) => (
+                                        <div key={index} className={cn("flex items-end gap-2", msg.sender === 'U' ? "justify-end" : "justify-start")}>
+                                            {msg.sender === 'M' && (
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage src="/placeholder.svg" alt="Manufacturer" />
+                                                    <AvatarFallback>M</AvatarFallback>
+                                                </Avatar>
+                                            )}
+                                            <div className={cn(
+                                                "max-w-xs md:max-w-md p-3 rounded-lg",
+                                                msg.sender === 'U' ? "bg-primary text-primary-foreground" : "bg-muted"
+                                            )}>
+                                                <p className="text-sm">{msg.text}</p>
+                                                <p className={cn("text-xs mt-1", msg.sender === 'U' ? "text-primary-foreground/70" : "text-muted-foreground")}>{msg.time}</p>
+                                            </div>
+                                             {msg.sender === 'U' && (
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                                    <AvatarFallback>U</AvatarFallback>
+                                                </Avatar>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="p-4 border-t bg-background">
+                                    <div className="relative">
+                                        <Textarea placeholder="Type your message..." className="pr-16" rows={2}/>
+                                        <Button type="submit" size="icon" className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                                            <Send className="h-4 w-4" />
+                                            <span className="sr-only">Send</span>
+                                        </Button>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                               <MessageSquare className="h-16 w-16 mb-4" />
+                                <p>Select a conversation to view messages.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );
@@ -446,7 +498,7 @@ const SettingsView = () => (
 );
 
 export default function AccountDashboardPage() {
-  const [activeView, setActiveView] = useState<View>('orders');
+  const [activeView, setActiveView] = useState<View>('messages');
 
   const renderContent = () => {
     switch (activeView) {
@@ -490,7 +542,7 @@ export default function AccountDashboardPage() {
                                    title="Messages"
                                    isActive={activeView === 'messages'}
                                    onClick={() => setActiveView('messages')}
-                                   count={3}
+                                   count={1}
                                 />
                                <SidebarNavItem
                                    icon={<ClipboardCheck className="h-5 w-5" />}
@@ -543,3 +595,5 @@ export default function AccountDashboardPage() {
     </div>
   );
 }
+
+    
