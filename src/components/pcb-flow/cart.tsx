@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, ShoppingCart } from "lucide-react";
+import Link from "next/link";
 
 export function Cart() {
   const { items, removeItem, clearCart, getTotal } = useCart();
@@ -20,12 +21,12 @@ export function Cart() {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto p-4 md:p-8 text-center">
+      <div className="container mx-auto p-4 md:p-8 text-center min-h-[60vh] flex flex-col justify-center items-center">
         <ShoppingCart className="mx-auto h-24 w-24 text-muted-foreground" />
         <h2 className="mt-6 text-2xl font-bold">Your cart is empty</h2>
         <p className="mt-2 text-muted-foreground">Looks like you haven't added any PCBs to your cart yet.</p>
         <Button asChild className="mt-6">
-          <a href="/order">Start an Order</a>
+          <Link href="/order">Start an Order</Link>
         </Button>
       </div>
     );
@@ -74,7 +75,7 @@ export function Cart() {
           </Card>
         </div>
         <div>
-          <Card className="sticky top-8">
+          <Card className="sticky top-24">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
@@ -83,13 +84,17 @@ export function Cart() {
                 <span>Subtotal</span>
                 <span>{formatCurrency(getTotal())}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-muted-foreground">
+                <span>GST (18%)</span>
+                <span>{formatCurrency(getTotal() * 0.18)}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
                 <span>Shipping</span>
                 <span>Calculated at checkout</span>
               </div>
-              <div className="flex justify-between font-bold text-lg">
+              <div className="flex justify-between font-bold text-lg pt-2 border-t">
                 <span>Total</span>
-                <span>{formatCurrency(getTotal())}</span>
+                <span>{formatCurrency(getTotal() * 1.18)}</span>
               </div>
               <Button className="w-full" size="lg">Proceed to Checkout</Button>
               <Button className="w-full" variant="outline" onClick={clearCart}>Clear Cart</Button>
