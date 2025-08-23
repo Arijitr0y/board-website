@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, Search } from 'lucide-react';
+import { Send, Search, Paperclip, File as FileIcon } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 const mockConversations = [
@@ -18,6 +18,7 @@ const mockConversations = [
     lastMessage: 'Okay, thank you for clarifying!',
     avatar: 'https://i.pravatar.cc/150?u=liamjohnson',
     time: '10:32 AM',
+    date: 'Today',
     isUnread: true,
     messages: [
       { sender: 'customer', text: 'Hi, I was wondering about the status of my order ORD-001.', time: '10:30 AM' },
@@ -31,12 +32,13 @@ const mockConversations = [
     subject: 'DFM review needed for my new design',
     lastMessage: 'Great, I have uploaded the new file.',
     avatar: 'https://i.pravatar.cc/150?u=oliviasmith',
-    time: 'Yesterday',
+    time: '3:45 PM',
+    date: 'Yesterday',
     isUnread: false,
      messages: [
-      { sender: 'customer', text: 'I have a new design ready, could you review the DFM?', time: 'Yesterday' },
-      { sender: 'support', text: 'Certainly, Olivia. Please upload the file and I will assign it to an engineer.', time: 'Yesterday' },
-      { sender: 'customer', text: 'Great, I have uploaded the new file.', time: 'Yesterday' },
+      { sender: 'customer', text: 'I have a new design ready, could you review the DFM?', time: '3:40 PM' },
+      { sender: 'support', text: 'Certainly, Olivia. Please upload the file and I will assign it to an engineer.', time: '3:42 PM' },
+      { sender: 'customer', text: 'Great, I have uploaded the new file.', time: '3:45 PM', attachment: { name: 'new-design-rev2.zip', size: '2.1MB' } },
     ],
   },
 ];
@@ -75,7 +77,7 @@ export default function ChatPage() {
                     <div className="flex-1">
                         <div className="flex justify-between items-start">
                             <p className="font-semibold text-sm">{conv.customerName}</p>
-                            <span className="text-xs text-muted-foreground">{conv.time}</span>
+                            <span className="text-xs text-muted-foreground">{conv.date}</span>
                         </div>
                       <p className="text-xs text-muted-foreground truncate font-medium">{conv.subject}</p>
                        <div className="flex items-center justify-between">
@@ -126,10 +128,20 @@ export default function ChatPage() {
                             : 'bg-background border'
                         )}
                       >
-                        <p className="text-sm">{msg.text}</p>
+                        {msg.attachment ? (
+                           <div className="flex items-center gap-2">
+                                <FileIcon className="h-6 w-6 text-muted-foreground" />
+                                <div>
+                                    <p className="text-sm font-medium">{msg.attachment.name}</p>
+                                    <p className="text-xs">{msg.attachment.size}</p>
+                                </div>
+                            </div>
+                        ) : (
+                             <p className="text-sm">{msg.text}</p>
+                        )}
                         <p
                           className={cn(
-                            'text-xs mt-1',
+                            'text-xs mt-1 text-right',
                             msg.sender === 'support'
                               ? 'text-primary-foreground/70'
                               : 'text-muted-foreground'
@@ -151,17 +163,19 @@ export default function ChatPage() {
                   <div className="relative">
                     <Textarea
                       placeholder="Type your message..."
-                      className="pr-16"
+                      className="pr-24"
                       rows={2}
                     />
-                    <Button
-                      type="submit"
-                      size="icon"
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2"
-                    >
-                      <Send className="h-4 w-4" />
-                      <span className="sr-only">Send</span>
-                    </Button>
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <Button type="button" size="icon" variant="ghost">
+                            <Paperclip className="h-5 w-5" />
+                            <span className="sr-only">Attach file</span>
+                        </Button>
+                        <Button type="submit" size="icon">
+                            <Send className="h-4 w-4" />
+                            <span className="sr-only">Send</span>
+                        </Button>
+                    </div>
                   </div>
                 </div>
               </>
