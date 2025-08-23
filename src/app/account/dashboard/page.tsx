@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2 } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -43,12 +43,21 @@ const SidebarNavItem = ({
 const OrdersView = () => (
     <Card>
         <CardHeader>
-            <CardTitle>My Orders</CardTitle>
-            <CardDescription>Track, view history, and manage your PCB orders.</CardDescription>
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <CardTitle>My Orders</CardTitle>
+                    <CardDescription>Track, view history, and manage your PCB orders.</CardDescription>
+                </div>
+                <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search by order ID or name..." className="pl-8 w-full md:w-64" />
+                </div>
+            </div>
         </CardHeader>
         <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-12 text-muted-foreground">
                 <p>No orders found.</p>
+                <Button variant="link" className="mt-2">Start a new order</Button>
             </div>
         </CardContent>
     </Card>
