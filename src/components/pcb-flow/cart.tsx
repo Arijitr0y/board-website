@@ -96,7 +96,9 @@ export function Cart() {
                 <span>Total</span>
                 <span>{formatCurrency(getTotal() * 1.18)}</span>
               </div>
-              <Button className="w-full" size="lg">Proceed to Checkout</Button>
+              <Button asChild className="w-full" size="lg">
+                <Link href="/checkout">Proceed to Checkout</Link>
+              </Button>
               <Button className="w-full" variant="outline" onClick={clearCart}>Clear Cart</Button>
             </CardContent>
           </Card>
