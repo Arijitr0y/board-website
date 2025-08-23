@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -84,20 +84,63 @@ const ProfileView = () => (
     </Card>
 );
 
-const AddressesView = () => (
+const AddressDisplay = ({ title, address, onEditClick }: { title: string; address?: { name: string; line1: string; city: string; zip: string; country: string; }; onEditClick: () => void; }) => (
     <Card>
-        <CardHeader>
-            <CardTitle>Addresses</CardTitle>
-            <CardDescription>Manage your shipping and billing addresses.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <h3 className="font-semibold">{title}</h3>
+            <Button variant="outline" size="sm" onClick={onEditClick}>
+                <Edit className="mr-2 h-3 w-3" />
+                {address ? 'Edit' : 'Add'}
+            </Button>
         </CardHeader>
         <CardContent>
-             <div className="text-center py-8 text-muted-foreground">
-                <p>No addresses saved.</p>
-                <Button variant="outline" className="mt-4">Add New Address</Button>
-            </div>
+            {address ? (
+                <div className="text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">{address.name}</p>
+                    <p>{address.line1}</p>
+                    <p>{address.city} - {address.zip}</p>
+                    <p>{address.country}</p>
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground">No address set.</p>
+            )}
         </CardContent>
     </Card>
-);
+)
+
+const AddressesView = () => {
+    const deliveryAddress = {
+        name: "John Doe",
+        line1: "Embassy Tech Village, Outer Ring Road",
+        city: "Bengaluru",
+        zip: "560103",
+        country: "India"
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Addresses</CardTitle>
+                <CardDescription>Manage your shipping and billing addresses.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <AddressDisplay
+                    title="Delivery Address"
+                    address={deliveryAddress}
+                    onEditClick={() => { /* Handle edit */ }}
+                />
+                <AddressDisplay
+                    title="Billing Address"
+                    address={deliveryAddress} // Using same for now
+                    onEditClick={() => { /* Handle edit */ }}
+                />
+            </CardContent>
+            <CardFooter className="border-t pt-6">
+                <Button variant="outline">Add New Address</Button>
+            </CardFooter>
+        </Card>
+    );
+};
 
 const SettingsView = () => (
     <Card>
