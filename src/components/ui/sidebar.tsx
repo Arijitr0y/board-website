@@ -268,7 +268,7 @@ const SidebarInset = React.forwardRef<
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[calc(var(--sidebar-width-icon)+theme(spacing.4)+2px)] md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
         "transition-[margin-left] duration-200 ease-in-out md:ml-[--sidebar-width-icon] md:peer-data-[state=expanded]:ml-[--sidebar-width]",
         className
       )}
@@ -504,33 +504,30 @@ const SidebarMenuButton = React.forwardRef<
   ) => {
     const { isMobile, state } = useSidebar()
     const Comp = asChild ? Slot : "button"
-
+    
+    const commonProps = {
+      ref: ref,
+      "data-sidebar": "menu-button",
+      "data-size": size,
+      "data-active": isActive,
+      className: cn(sidebarMenuButtonVariants({ variant, size, className })),
+      ...props,
+    };
+    
     const buttonContent = (
-      <Comp
-        ref={ref}
-        data-sidebar="menu-button"
-        data-size={size}
-        data-active={isActive}
-        className={cn(sidebarMenuButtonVariants({ variant, size, className }))}
-        {...props}
-      >
-        {children}
-      </Comp>
-    )
-
-    let trigger: React.ReactElement
-    if (href) {
-      trigger = (
-        <Link href={href} passHref legacyBehavior>
-          {buttonContent}
+      href ? (
+        <Link href={href} {...commonProps} ref={ref as React.Ref<HTMLAnchorElement>}>
+          {children}
         </Link>
+      ) : (
+        <Comp {...commonProps} ref={ref}>
+          {children}
+        </Comp>
       )
-    } else {
-      trigger = buttonContent
-    }
+    );
 
     if (!tooltip) {
-      return trigger
+      return buttonContent
     }
 
     if (typeof tooltip === "string") {
@@ -541,7 +538,7 @@ const SidebarMenuButton = React.forwardRef<
 
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+        <TooltipTrigger asChild>{buttonContent}</TooltipTrigger>
         <TooltipContent
           side="right"
           align="center"
@@ -723,5 +720,3 @@ export {
   SidebarTrigger,
   useSidebar,
 }
-
-    
