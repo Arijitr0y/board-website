@@ -99,7 +99,6 @@ export function Cart() {
               <Button asChild className="w-full" size="lg">
                 <Link href="/checkout">Proceed to Checkout</Link>
               </Button>
-              <Button className="w-full" variant="outline" onClick={clearCart}>Clear Cart</Button>
             </CardContent>
           </Card>
         </div>
