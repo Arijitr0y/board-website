@@ -74,7 +74,7 @@ export default function BlogPage() {
               {/* Featured Post */}
               {featuredPost && (
                  <Card className="mb-12 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <Link href={`/blog/${featuredPost.slug}`} className="block">
+                    <Link href={`/resources/blog/${featuredPost.slug}`} className="block">
                       <Image
                         src={featuredPost.imageUrl}
                         alt={featuredPost.title}
@@ -94,7 +94,9 @@ export default function BlogPage() {
                         </div>
                       </CardContent>
                        <CardFooter>
-                         <Button variant="link" className="p-0">Read More <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                         <Button variant="link" className="p-0" asChild>
+                           <Link href={`/resources/blog/${featuredPost.slug}`}>Read More <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                         </Button>
                       </CardFooter>
                     </Link>
                  </Card>
@@ -104,7 +106,7 @@ export default function BlogPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {otherPosts.map((post) => (
                   <Card key={post.slug} className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-                     <Link href={`/blog/${post.slug}`} className="block">
+                     <Link href={`/resources/blog/${post.slug}`} className="block">
                       <Image
                         src={post.imageUrl}
                         alt={post.title}
@@ -115,7 +117,7 @@ export default function BlogPage() {
                       />
                      </Link>
                     <CardHeader>
-                       <Link href={`/blog/${post.slug}`}><CardTitle className="hover:text-primary transition-colors">{post.title}</CardTitle></Link>
+                       <Link href={`/resources/blog/${post.slug}`}><CardTitle className="hover:text-primary transition-colors">{post.title}</CardTitle></Link>
                     </CardHeader>
                     <CardContent className="flex-grow">
                       <p className="text-muted-foreground text-sm line-clamp-3">{post.description}</p>
@@ -126,7 +128,7 @@ export default function BlogPage() {
                           <div className="flex items-center gap-1.5"><Calendar className="h-3 w-3" /> {post.date}</div>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {post.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                        {post.tags.map(tag => <Badge key={tag} variant="secondary" asChild><Link href={`/resources/blog/category/${tag.toLowerCase()}`}>{tag}</Link></Badge>)}
                       </div>
                     </CardFooter>
                   </Card>
@@ -142,7 +144,7 @@ export default function BlogPage() {
                   <ul className="space-y-2">
                     {categories.map(category => (
                       <li key={category}>
-                        <Link href={`/blog/category/${category.toLowerCase()}`} className="text-muted-foreground hover:text-primary transition-colors">
+                        <Link href={`/resources/blog/category/${category.toLowerCase()}`} className="text-muted-foreground hover:text-primary transition-colors">
                           {category}
                         </Link>
                       </li>
@@ -156,7 +158,7 @@ export default function BlogPage() {
                    <ul className="space-y-4">
                     {posts.slice(0, 3).map(post => (
                       <li key={post.slug}>
-                         <Link href={`/blog/${post.slug}`} className="font-semibold text-foreground hover:text-primary transition-colors block">
+                         <Link href={`/resources/blog/${post.slug}`} className="font-semibold text-foreground hover:text-primary transition-colors block">
                           {post.title}
                         </Link>
                         <p className="text-xs text-muted-foreground mt-1">{post.date}</p>
