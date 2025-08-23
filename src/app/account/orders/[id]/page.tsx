@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Check, Download, FileText, Package, Rocket, Truck, User, Wrench } from "lucide-react";
+import { ArrowLeft, Check, Download, FileText, Package, Rocket, Truck, User, Wrench, Clock } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -30,7 +30,12 @@ const getOrderDetails = (id: string) => {
                 maskColor: 'Green',
                 finish: 'HASL',
             },
-            shippingAddress: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India'
+            shippingAddress: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India',
+            history: [
+                { status: 'In Fabrication', date: '2024-07-21 09:00 AM', description: 'PCB fabrication has started.' },
+                { status: 'Processing', date: '2024-07-20 11:00 AM', description: 'Your design files are being reviewed.' },
+                { status: 'Order Placed', date: '2024-07-20 10:30 AM', description: 'Your order has been successfully placed.' },
+            ]
         },
         'PCB-2024-002': { 
             id: 'PCB-2024-002', 
@@ -48,7 +53,12 @@ const getOrderDetails = (id: string) => {
                 maskColor: 'Black',
                 finish: 'ENIG',
             },
-            shippingAddress: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India'
+            shippingAddress: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India',
+            history: [
+                 { status: 'Shipped', date: '2024-07-18 05:30 PM', description: 'Your order has been shipped via DTDC.' },
+                 { status: 'In Fabrication', date: '2024-07-16 11:00 AM', description: 'PCB fabrication has completed.' },
+                 { status: 'Order Placed', date: '2024-07-15 02:00 PM', description: 'Your order has been successfully placed.' },
+            ]
         },
         'PCB-2024-001': { 
             id: 'PCB-2024-001', 
@@ -66,7 +76,12 @@ const getOrderDetails = (id: string) => {
                 maskColor: 'Red',
                 finish: 'HASL',
             },
-            shippingAddress: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India'
+            shippingAddress: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India',
+            history: [
+                { status: 'Delivered', date: '2024-07-01 12:45 PM', description: 'Package delivered.' },
+                { status: 'Shipped', date: '2024-06-29 08:00 AM', description: 'Your order has been shipped.' },
+                { status: 'Order Placed', date: '2024-06-28 09:30 AM', description: 'Your order has been placed.' },
+            ]
         },
     };
     // @ts-ignore
@@ -86,9 +101,9 @@ const StatusTimeline = ({ currentStatus }: { currentStatus: string }) => {
     const currentIndex = statuses.findIndex(s => s.name === currentStatus);
 
     return (
-        <div className="flex justify-between items-center my-6">
+        <div className="flex justify-between items-start my-6">
             {statuses.map((status, index) => (
-                <div key={status.name} className="flex-1 text-center relative">
+                <div key={status.name} className="flex-1 text-center relative group">
                     <div className="flex flex-col items-center">
                         <div className={`flex h-12 w-12 items-center justify-center rounded-full border-2 ${index <= currentIndex ? 'bg-primary border-primary text-primary-foreground' : 'bg-muted border-border'}`}>
                             <status.icon className="h-6 w-6" />
@@ -194,6 +209,28 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                         <p className="text-sm">Paid with Visa ending in 1234</p>
                                     </div>
                                     <Button variant="link" className="p-0 h-auto mt-2">View Invoice</Button>
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader><CardTitle>Order History</CardTitle></CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-4">
+                                        {order.history.map((item, index) => (
+                                            <li key={index} className="flex gap-4">
+                                                <div className="flex flex-col items-center">
+                                                    <div className={`flex h-8 w-8 items-center justify-center rounded-full ${index === 0 ? 'bg-primary/20 text-primary' : 'bg-muted'}`}>
+                                                        <Clock className="h-4 w-4" />
+                                                    </div>
+                                                    {index < order.history.length - 1 && <div className="w-px h-full bg-border" />}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium">{item.status}</p>
+                                                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                                                    <time className="text-xs text-muted-foreground">{item.date}</time>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </CardContent>
                             </Card>
                         </div>
