@@ -2,14 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { AnalyzeGerberForDfmIssuesOutput } from "@/ai/flows/dfm-analysis";
-import { analyzeGerberForDfmIssues } from "@/ai/flows/dfm-analysis";
 import type { PcbConfig, BuildTime, ShippingMethod } from "@/types";
 import { analyzeGerberFiles } from "@/lib/gerber";
 
 import { PcbConfigurator } from "./pcb-configurator";
 import { GerberUpload } from "./gerber-upload";
-import { DfmAnalysis } from "./dfm-analysis";
 import { InstantQuote } from "./instant-quote";
 import { OrderTracking } from "./order-tracking";
 import { useToast } from "@/hooks/use-toast";
@@ -31,21 +28,15 @@ const initialConfig: PcbConfig = {
 export function Dashboard() {
   const { toast } = useToast();
   const [gerberFile, setGerberFile] = useState<File | null>(null);
-  const [gerberDataUri, setGerberDataUri] = useState<string | null>(null);
   const [config, setConfig] = useState<PcbConfig>(initialConfig);
   const [quote, setQuote] = useState<number | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] =
-    useState<AnalyzeGerberForDfmIssuesOutput | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [buildTime, setBuildTime] = useState<BuildTime>("5-6");
   const [shippingMethod, setShippingMethod] = useState<ShippingMethod>("standard");
 
   const handleFileSelect = async (file: File) => {
     setGerberFile(file);
-    setAnalysisResult(null);
-    setError(null);
     setIsAnalyzing(true);
     setOrderPlaced(false);
 
@@ -64,48 +55,18 @@ export function Dashboard() {
       }
     } catch (err) {
       console.error("Failed to analyze gerber files for dimensions/layers", err);
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUri = e.target?.result as string;
-      if (dataUri) {
-        setGerberDataUri(dataUri);
-        try {
-          const result = await analyzeGerberForDfmIssues({
-            gerberDataUri: dataUri,
-          });
-          setAnalysisResult(result);
-        } catch (err) {
-          setError("Failed to analyze Gerber file. Please try again.");
-          toast({
-            variant: "destructive",
-            title: "Analysis Failed",
-            description: "There was an error processing your file.",
-          });
-          console.error(err);
-        } finally {
-          setIsAnalyzing(false);
-        }
-      }
-    };
-    reader.onerror = () => {
-      setError("Failed to read file.");
-      setIsAnalyzing(false);
-      toast({
+       toast({
         variant: "destructive",
-        title: "File Read Error",
-        description: "Could not read the selected file.",
+        title: "Analysis Failed",
+        description: "There was an error processing your file.",
       });
-    };
-    reader.readAsDataURL(file);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
   
   const handleFileReset = () => {
     setGerberFile(null);
-    setGerberDataUri(null);
-    setAnalysisResult(null);
-    setError(null);
     setOrderPlaced(false);
     setConfig(initialConfig);
   };
@@ -197,13 +158,6 @@ export function Dashboard() {
               onPlaceOrder={handlePlaceOrder}
               disabled={!gerberFile || isAnalyzing}
             />
-            {(isAnalyzing || analysisResult || error) && (
-              <DfmAnalysis
-                isLoading={isAnalyzing}
-                result={analysisResult}
-                error={error}
-              />
-            )}
             {orderPlaced && <OrderTracking />}
           </div>
         </div>
