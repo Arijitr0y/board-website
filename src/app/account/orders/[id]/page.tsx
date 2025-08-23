@@ -1,4 +1,6 @@
 
+'use client';
+
 import React from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Badge } from "@/components/ui/badge";
@@ -8,12 +10,12 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Check, Download, FileText, Package, Rocket, Truck, User, Wrench, Clock, Search } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 
 
 const getOrderDetails = (id: string) => {
     // In a real app, you would fetch this from your database
-    const orders = {
+    const orders: Record<string, any> = {
         'PCB-2024-003': { 
             id: 'PCB-2024-003', 
             projectName: 'IoT Weather Station', 
@@ -87,7 +89,6 @@ const getOrderDetails = (id: string) => {
             ]
         },
     };
-    // @ts-ignore
     const order = orders[id];
     if (!order) notFound();
     return order;
@@ -122,6 +123,31 @@ const StatusTimeline = ({ currentStatus }: { currentStatus: string }) => {
     )
 }
 
+const OrderHistoryCard = ({ history }: { history: { status: string; date: string; description: string; }[] }) => (
+    <Card>
+        <CardHeader><CardTitle>Order History</CardTitle></CardHeader>
+        <CardContent>
+            <ul className="space-y-4">
+                {history.map((item, index) => (
+                    <li key={index} className="flex gap-4">
+                        <div className="flex flex-col items-center">
+                            <div className={`flex h-8 w-8 items-center justify-center rounded-full ${index === 0 ? 'bg-primary/20 text-primary' : 'bg-muted'}`}>
+                                <Clock className="h-4 w-4" />
+                            </div>
+                            {index < history.length - 1 && <div className="w-px h-full bg-border" />}
+                        </div>
+                        <div>
+                            <p className="font-medium">{item.status}</p>
+                            <p className="text-sm text-muted-foreground">{item.description}</p>
+                            <time className="text-xs text-muted-foreground">{item.date}</time>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        </CardContent>
+    </Card>
+);
+
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
     const order = getOrderDetails(params.id);
 
@@ -150,13 +176,15 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                 {order.status === "Shipped" && <Button><Truck className="mr-2 h-4 w-4"/> Track Package</Button>}
                             </div>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-6 pt-0">
                             <StatusTimeline currentStatus={order.status} />
                         </CardContent>
                     </Card>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2 space-y-8">
+                            <OrderHistoryCard history={order.history} />
+
                             <Card>
                                 <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
                                 <CardContent>
@@ -212,28 +240,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                         <p className="text-sm">Paid with Visa ending in 1234</p>
                                     </div>
                                     <Button variant="link" className="p-0 h-auto mt-2">View Invoice</Button>
-                                </CardContent>
-                            </Card>
-                             <Card>
-                                <CardHeader><CardTitle>Order History</CardTitle></CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-4">
-                                        {order.history.map((item, index) => (
-                                            <li key={index} className="flex gap-4">
-                                                <div className="flex flex-col items-center">
-                                                    <div className={`flex h-8 w-8 items-center justify-center rounded-full ${index === 0 ? 'bg-primary/20 text-primary' : 'bg-muted'}`}>
-                                                        <Clock className="h-4 w-4" />
-                                                    </div>
-                                                    {index < order.history.length - 1 && <div className="w-px h-full bg-border" />}
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium">{item.status}</p>
-                                                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                                                    <time className="text-xs text-muted-foreground">{item.date}</time>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
                                 </CardContent>
                             </Card>
                         </div>
