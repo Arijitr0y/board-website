@@ -1,26 +1,103 @@
 
-import { Header } from "@/components/pcb-flow/header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { User, Settings, MapPin, Package } from "lucide-react";
+'use client';
 
-const DashboardItem = ({ icon, title, description, href }: { icon: React.ReactNode; title: string; description: string; href: string; }) => (
-    <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader className="flex flex-row items-center gap-4">
-            {icon}
-            <CardTitle>{title}</CardTitle>
+import { useState } from "react";
+import { Header } from "@/components/pcb-flow/header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { User, Settings, MapPin, Package, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type View = 'orders' | 'profile' | 'addresses' | 'settings';
+
+const SidebarNavItem = ({
+  icon,
+  title,
+  isActive,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  isActive: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
+      isActive
+        ? "bg-primary/10 text-primary font-semibold"
+        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+    )}
+  >
+    {icon}
+    <span className="flex-grow">{title}</span>
+    <ChevronRight className={cn("h-5 w-5 transition-transform", isActive ? "translate-x-1" : "")} />
+  </button>
+);
+
+const OrdersView = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>My Orders</CardTitle>
         </CardHeader>
         <CardContent>
-            <p className="text-muted-foreground mb-4">{description}</p>
-            <Button asChild variant="outline">
-                <Link href={href}>Manage</Link>
-            </Button>
+            <p>Track, view history, and manage your PCB orders. (Content for My Orders)</p>
+        </CardContent>
+    </Card>
+);
+
+const ProfileView = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Profile Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <p>Edit your personal details and contact information. (Content for Profile Information)</p>
+        </CardContent>
+    </Card>
+);
+
+const AddressesView = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Addresses</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <p>Manage your shipping and billing addresses. (Content for Addresses)</p>
+        </CardContent>
+    </Card>
+);
+
+const SettingsView = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Account Settings</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <p>Update your password and communication preferences. (Content for Account Settings)</p>
         </CardContent>
     </Card>
 );
 
 export default function AccountDashboardPage() {
+  const [activeView, setActiveView] = useState<View>('orders');
+
+  const renderContent = () => {
+    switch (activeView) {
+      case 'orders':
+        return <OrdersView />;
+      case 'profile':
+        return <ProfileView />;
+      case 'addresses':
+        return <AddressesView />;
+      case 'settings':
+        return <SettingsView />;
+      default:
+        return <OrdersView />;
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
@@ -31,31 +108,45 @@ export default function AccountDashboardPage() {
                 <p className="text-lg text-muted-foreground mt-2">Manage your orders, personal information, and settings.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <DashboardItem 
-                    icon={<Package className="h-8 w-8 text-primary" />}
-                    title="My Orders"
-                    description="Track, view history, and manage your PCB orders."
-                    href="#"
-                />
-                <DashboardItem 
-                    icon={<User className="h-8 w-8 text-primary" />}
-                    title="Profile Information"
-                    description="Edit your personal details and contact information."
-                    href="#"
-                />
-                <DashboardItem 
-                    icon={<MapPin className="h-8 w-8 text-primary" />}
-                    title="Addresses"
-                    description="Manage your shipping and billing addresses."
-                    href="#"
-                />
-                <DashboardItem 
-                    icon={<Settings className="h-8 w-8 text-primary" />}
-                    title="Account Settings"
-                    description="Update your password and communication preferences."
-                    href="#"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                {/* Sidebar */}
+                <aside className="md:col-span-1">
+                    <Card>
+                       <CardContent className="p-2">
+                           <nav className="space-y-1">
+                               <SidebarNavItem 
+                                   icon={<Package className="h-5 w-5" />}
+                                   title="My Orders"
+                                   isActive={activeView === 'orders'}
+                                   onClick={() => setActiveView('orders')}
+                                />
+                               <SidebarNavItem 
+                                   icon={<User className="h-5 w-5" />}
+                                   title="Profile Information"
+                                   isActive={activeView === 'profile'}
+                                   onClick={() => setActiveView('profile')}
+                                />
+                               <SidebarNavItem 
+                                   icon={<MapPin className="h-5 w-5" />}
+                                   title="Addresses"
+                                   isActive={activeView === 'addresses'}
+                                   onClick={() => setActiveView('addresses')}
+                                />
+                               <SidebarNavItem 
+                                   icon={<Settings className="h-5 w-5" />}
+                                   title="Account Settings"
+                                   isActive={activeView === 'settings'}
+                                   onClick={() => setActiveView('settings')}
+                                />
+                           </nav>
+                       </CardContent>
+                    </Card>
+                </aside>
+                
+                {/* Main Content */}
+                <div className="md:col-span-3">
+                    {renderContent()}
+                </div>
             </div>
         </div>
       </main>
