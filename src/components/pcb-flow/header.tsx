@@ -81,7 +81,7 @@ export function Header() {
                     <span className="sr-only">Cart</span>
                 </Link>
             </Button>
-            <Link href="/order">
+            <Link href="/account/dashboard">
               <Avatar>
                 <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                 <AvatarFallback>CN</AvatarFallback>
