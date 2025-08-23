@@ -32,25 +32,25 @@ export function AdminSidebar() {
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton href="/admin/orders" tooltip="Orders" isActive>
+                    <SidebarMenuButton href="/admin/orders" tooltip="Orders">
                         <ShoppingCart className="h-5 w-5" />
                         <span className="group-data-[collapsible=icon]:hidden">Orders</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                     <SidebarMenuButton href="#" tooltip="Products">
+                     <SidebarMenuButton href="/admin/products" tooltip="Products">
                         <Package className="h-5 w-5" />
                         <span className="group-data-[collapsible=icon]:hidden">Products</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
-                     <SidebarMenuButton href="#" tooltip="Customers">
+                     <SidebarMenuButton href="/admin/customers" tooltip="Customers">
                         <Users2 className="h-5 w-5" />
                         <span className="group-data-[collapsible=icon]:hidden">Customers</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
-                     <SidebarMenuButton href="#" tooltip="Analytics">
+                     <SidebarMenuButton href="/admin/analytics" tooltip="Analytics">
                         <LineChart className="h-5 w-5" />
                         <span className="group-data-[collapsible=icon]:hidden">Analytics</span>
                     </SidebarMenuButton>
@@ -60,7 +60,7 @@ export function AdminSidebar() {
             <div className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
                  <SidebarMenu>
                     <SidebarMenuItem>
-                         <SidebarMenuButton href="#" tooltip="Settings">
+                         <SidebarMenuButton href="/admin/settings" tooltip="Settings">
                             <Settings className="h-5 w-5" />
                             <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                         </SidebarMenuButton>
