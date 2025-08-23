@@ -1,8 +1,16 @@
-import { CircuitBoard, Cpu, CheckCircle, Package, ShieldCheck, Zap, Users, Factory } from 'lucide-react';
+import { CircuitBoard, Cpu, CheckCircle, Package, ShieldCheck, Zap, Users, Factory, Rocket, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Header } from '@/components/pcb-flow/header';
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title:string; description: string }) => (
   <div className="flex flex-col items-center p-6 text-center bg-card rounded-lg shadow-md transition-transform hover:scale-105">
@@ -30,24 +38,73 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="py-20 text-center bg-gray-50 dark:bg-gray-900/50">
-          <div className="container mx-auto px-4">
-            <h1 className="text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl md:text-7xl">
-              Advanced PCBs, On-Demand
-            </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground md:text-xl">
-              Superior quality, no minimum order, and rapid turnarounds. Get instant quotes, AI-powered DFM analysis, and seamless order tracking for all your PCB needs.
-            </p>
-            <div className="mt-8 flex justify-center gap-4">
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Link href="/order">Get an Instant Quote</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="#features">How It Works</Link>
-              </Button>
-            </div>
-          </div>
+        {/* Hero Carousel Section */}
+        <section className="relative w-full">
+          <Carousel
+            className="w-full"
+            opts={{
+              loop: true,
+            }}
+          >
+            <CarouselContent>
+              <CarouselItem>
+                <div className="py-24 text-center bg-gray-50 dark:bg-gray-900/50">
+                  <div className="container mx-auto px-4">
+                    <h1 className="text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl md:text-7xl">
+                      Advanced PCBs, On-Demand
+                    </h1>
+                    <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground md:text-xl">
+                      Superior quality, no minimum order, and rapid turnarounds for all your custom circuit board needs.
+                    </p>
+                    <div className="mt-8 flex justify-center gap-4">
+                      <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                        <Link href="/order">Get an Instant Quote</Link>
+                      </Button>
+                      <Button asChild size="lg" variant="outline">
+                        <Link href="#features">How It Works</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+              <CarouselItem>
+                <div className="py-24 text-center bg-gray-50 dark:bg-gray-900/50">
+                   <div className="container mx-auto px-4">
+                    <h1 className="text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl md:text-7xl">
+                      AI-Powered DFM Analysis
+                    </h1>
+                    <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground md:text-xl">
+                      Upload your Gerber files and our smart DFM tools will help you catch issues before manufacturing.
+                    </p>
+                    <div className="mt-8 flex justify-center gap-4">
+                      <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                        <Link href="/services/dfm-analysis">Learn About DFM</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+              <CarouselItem>
+                <div className="py-24 text-center bg-gray-50 dark:bg-gray-900/50">
+                   <div className="container mx-auto px-4">
+                    <h1 className="text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl md:text-7xl">
+                      Rapid PCB Prototyping
+                    </h1>
+                    <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground md:text-xl">
+                      Go from design to tangible prototype in days. Fast, reliable, and built to your exact specifications.
+                    </p>
+                    <div className="mt-8 flex justify-center gap-4">
+                      <Button asChild size="lg">
+                        <Link href="/services/prototyping">Start Prototyping</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 hidden sm:flex" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex" />
+          </Carousel>
         </section>
 
         {/* Features Section */}
