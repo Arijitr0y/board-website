@@ -10,6 +10,7 @@ import { GerberUpload } from "./gerber-upload";
 import { InstantQuote } from "./instant-quote";
 import { OrderTracking } from "./order-tracking";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/context/cart-context";
 
 const initialConfig: PcbConfig = {
   layers: "2",
@@ -27,6 +28,7 @@ const initialConfig: PcbConfig = {
 
 export function Dashboard() {
   const { toast } = useToast();
+  const { addItem } = useCart();
   const [gerberFile, setGerberFile] = useState<File | null>(null);
   const [config, setConfig] = useState<PcbConfig>(initialConfig);
   const [quote, setQuote] = useState<number | null>(null);
@@ -109,12 +111,19 @@ export function Dashboard() {
     calculateQuote(config, buildTime, newShippingMethod);
   };
 
-  const handlePlaceOrder = () => {
+  const handleAddToCart = () => {
     if (gerberFile && quote) {
-      setOrderPlaced(true);
+      addItem({
+        id: Date.now().toString(),
+        gerberFile,
+        config,
+        quote,
+        buildTime,
+        shippingMethod
+      });
       toast({
-        title: "Order Placed!",
-        description: "Your PCB order has been successfully placed.",
+        title: "Added to Cart!",
+        description: "Your PCB configuration has been added to the cart.",
       });
     }
   };
@@ -155,7 +164,7 @@ export function Dashboard() {
               shippingMethod={shippingMethod}
               onBuildTimeChange={handleBuildTimeChange}
               onShippingMethodChange={handleShippingMethodChange}
-              onPlaceOrder={handlePlaceOrder}
+              onAddToCart={handleAddToCart}
               disabled={!gerberFile || isAnalyzing}
             />
             {orderPlaced && <OrderTracking />}

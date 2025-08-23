@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import type { BuildTime, ShippingMethod } from "@/types";
 
 interface InstantQuoteProps {
@@ -21,7 +21,7 @@ interface InstantQuoteProps {
   shippingMethod: ShippingMethod;
   onBuildTimeChange: (value: BuildTime) => void;
   onShippingMethodChange: (value: ShippingMethod) => void;
-  onPlaceOrder: () => void;
+  onAddToCart: () => void;
   disabled: boolean;
 }
 
@@ -39,7 +39,7 @@ export function InstantQuote({
   shippingMethod,
   onBuildTimeChange,
   onShippingMethodChange,
-  onPlaceOrder,
+  onAddToCart,
   disabled,
 }: InstantQuoteProps) {
   const perUnitCost = quote ? quote / quantity : 0;
@@ -135,15 +135,14 @@ export function InstantQuote({
         </div>
 
         <Button
-          onClick={onPlaceOrder}
+          onClick={onAddToCart}
           disabled={disabled}
           size="lg"
-          className="w-full bg-gray-500 text-white hover:bg-gray-600"
+          className="w-full bg-primary text-white hover:bg-primary/90"
         >
-          Save to Cart <ArrowRight className="ml-2 h-4 w-4" />
+          Add to Cart <ShoppingCart className="ml-2 h-4 w-4" />
         </Button>
       </CardContent>
     </Card>
   );
 }
-

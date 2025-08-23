@@ -18,3 +18,12 @@ export interface PcbConfig {
 
 export type BuildTime = "5-6" | "4-5";
 export type ShippingMethod = "standard" | "plus";
+
+export interface CartItem {
+  id: string;
+  gerberFile: File;
+  config: PcbConfig;
+  quote: number | null;
+  buildTime: BuildTime;
+  shippingMethod: ShippingMethod;
+}
