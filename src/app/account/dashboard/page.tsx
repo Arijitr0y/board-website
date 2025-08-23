@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck, Mail, FileCheck, Send } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck, Mail, FileCheck, Send, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -282,37 +282,65 @@ const OrdersView = () => {
     )
 };
 
-const ProfileView = () => (
-    <Card>
-        <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Edit your personal details and contact information.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" defaultValue="John" />
+const ProfileView = () => {
+    const [profileImage, setProfileImage] = useState("https://github.com/shadcn.png");
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+                <CardDescription>Edit your personal details and contact information.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="flex items-center gap-6 pt-2">
+                    <Avatar className="h-24 w-24">
+                        <AvatarImage src={profileImage} alt="User profile picture" />
+                        <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2">
+                        <h3 className="font-medium">Profile Picture</h3>
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                                <Upload className="mr-2 h-4 w-4" />
+                                {profileImage ? 'Change' : 'Upload'}
+                            </Button>
+                            {profileImage && (
+                                <Button variant="ghost" size="sm" onClick={() => setProfileImage("")}>
+                                    Remove
+                                </Button>
+                            )}
+                        </div>
+                         <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB.</p>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" defaultValue="Doe" />
+
+                <Separator />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input id="firstName" defaultValue="John" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input id="lastName" defaultValue="Doe" />
+                    </div>
                 </div>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" defaultValue="john.doe@example.com" />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" type="tel" defaultValue="+91 98765 43210" />
-            </div>
-        </CardContent>
-        <CardFooter className="border-t pt-6">
-            <Button>Save Changes</Button>
-        </CardFooter>
-    </Card>
-);
+                 <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" type="tel" defaultValue="+91 98765 43210" />
+                </div>
+            </CardContent>
+            <CardFooter className="border-t pt-6">
+                <Button>Save Changes</Button>
+            </CardFooter>
+        </Card>
+    );
+};
 
 const AddressDisplay = ({ title, address, onEditClick }: { title: string; address?: { name: string; line1: string; city: string; zip: string; country: string; }; onEditClick: () => void; }) => (
     <Card>
@@ -595,5 +623,3 @@ export default function AccountDashboardPage() {
     </div>
   );
 }
-
-    
