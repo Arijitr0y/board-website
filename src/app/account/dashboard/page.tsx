@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck, Mail, FileCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -51,17 +51,92 @@ const SidebarNavItem = ({
   </button>
 );
 
-const MessagesView = () => (
-    <Card>
-        <CardHeader>
-            <CardTitle>Messages</CardTitle>
-            <CardDescription>View your messages and notifications.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p>Messages content goes here.</p>
-        </CardContent>
-    </Card>
+const MessageItem = ({ icon, title, description, time, isUnread, action }: { icon: React.ReactNode, title: string, description: string, time: string, isUnread: boolean, action?: React.ReactNode }) => (
+    <div className={cn("flex items-start gap-4 p-4 border-b last:border-b-0", isUnread && "bg-primary/5")}>
+        <div className="text-muted-foreground mt-1">{icon}</div>
+        <div className="flex-grow">
+            <p className="font-semibold">{title}</p>
+            <p className="text-sm text-muted-foreground">{description}</p>
+            <p className="text-xs text-muted-foreground mt-1">{time}</p>
+        </div>
+        {action && <div>{action}</div>}
+    </div>
 );
+
+
+const MessagesView = () => {
+    const orderUpdates = [
+        { title: 'Order Shipped: PCB-2024-002', description: 'Your order for "Audio Amplifier Board" has been shipped.', time: '3 days ago', isUnread: false, href: '/account/orders/PCB-2024-002' },
+        { title: 'Order Delivered: PCB-2024-001', description: 'Your order for "LED Matrix Display" has been delivered.', time: '2 weeks ago', isUnread: false, href: '/account/orders/PCB-2024-001' },
+    ];
+    const dfmAlerts = [
+         { title: 'DFM Review Passed: IoT Weather Station', description: 'No critical issues found in your design "weather-station-v2.zip".', time: '1 day ago', isUnread: true, href: '#' },
+    ];
+    const allMessages = [...orderUpdates, ...dfmAlerts].sort(() => Math.random() - 0.5); // Random sort for demo
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Messages</CardTitle>
+                <CardDescription>View your notifications, DFM alerts, and order updates.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Tabs defaultValue="all">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="all">All ({allMessages.length})</TabsTrigger>
+                        <TabsTrigger value="updates">Order Updates ({orderUpdates.length})</TabsTrigger>
+                        <TabsTrigger value="dfm">DFM Alerts ({dfmAlerts.length})</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="all" className="mt-4">
+                        <div className="border rounded-lg">
+                           {allMessages.map(msg => (
+                               <MessageItem
+                                   key={msg.title}
+                                   icon={msg.title.startsWith('DFM') ? <FileCheck className="h-5 w-5" /> : <Package className="h-5 w-5" />}
+                                   title={msg.title}
+                                   description={msg.description}
+                                   time={msg.time}
+                                   isUnread={msg.isUnread}
+                                   action={<Button variant="outline" size="sm" asChild><Link href={msg.href}>View</Link></Button>}
+                               />
+                           ))}
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="updates" className="mt-4">
+                         <div className="border rounded-lg">
+                           {orderUpdates.map(msg => (
+                               <MessageItem
+                                   key={msg.title}
+                                   icon={<Package className="h-5 w-5" />}
+                                   title={msg.title}
+                                   description={msg.description}
+                                   time={msg.time}
+                                   isUnread={msg.isUnread}
+                                   action={<Button variant="outline" size="sm" asChild><Link href={msg.href}>View Order</Link></Button>}
+                               />
+                           ))}
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="dfm" className="mt-4">
+                         <div className="border rounded-lg">
+                           {dfmAlerts.map(msg => (
+                               <MessageItem
+                                   key={msg.title}
+                                   icon={<FileCheck className="h-5 w-5" />}
+                                   title={msg.title}
+                                   description={msg.description}
+                                   time={msg.time}
+                                   isUnread={msg.isUnread}
+                                   action={<Button variant="outline" size="sm" asChild><Link href={msg.href}>View Analysis</Link></Button>}
+                               />
+                           ))}
+                        </div>
+                    </TabsContent>
+                </Tabs>
+            </CardContent>
+        </Card>
+    );
+};
 
 const PcbReviewsView = () => (
     <Card>
@@ -468,5 +543,3 @@ export default function AccountDashboardPage() {
     </div>
   );
 }
-
-    
