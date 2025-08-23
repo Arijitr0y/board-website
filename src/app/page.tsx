@@ -1,3 +1,6 @@
+
+'use client';
+
 import { CircuitBoard, Cpu, CheckCircle, Package, ShieldCheck, Zap, Users, Factory, Rocket, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -11,6 +14,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import React from 'react';
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title:string; description: string }) => (
   <div className="flex flex-col items-center p-6 text-center bg-card rounded-lg shadow-md transition-transform hover:scale-105">
@@ -34,6 +39,10 @@ const AdvantageCard = ({ icon, title, description }: { icon: React.ReactNode; ti
 
 
 export default function HomePage() {
+   const plugin = React.useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true })
+  )
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
@@ -45,6 +54,9 @@ export default function HomePage() {
             opts={{
               loop: true,
             }}
+             plugins={[plugin.current]}
+             onMouseEnter={plugin.current.stop}
+             onMouseLeave={plugin.current.reset}
           >
             <CarouselContent>
               <CarouselItem>
