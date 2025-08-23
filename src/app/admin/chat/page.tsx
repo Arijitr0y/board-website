@@ -17,6 +17,7 @@ const mockConversations = [
     subject: 'Question about my order ORD-001',
     lastMessage: 'Okay, thank you for clarifying!',
     avatar: 'https://i.pravatar.cc/150?u=liamjohnson',
+    time: '10:32 AM',
     isUnread: true,
     messages: [
       { sender: 'customer', text: 'Hi, I was wondering about the status of my order ORD-001.', time: '10:30 AM' },
@@ -30,6 +31,7 @@ const mockConversations = [
     subject: 'DFM review needed for my new design',
     lastMessage: 'Great, I have uploaded the new file.',
     avatar: 'https://i.pravatar.cc/150?u=oliviasmith',
+    time: 'Yesterday',
     isUnread: false,
      messages: [
       { sender: 'customer', text: 'I have a new design ready, could you review the DFM?', time: 'Yesterday' },
@@ -73,10 +75,13 @@ export default function ChatPage() {
                     <div className="flex-1">
                         <div className="flex justify-between items-start">
                             <p className="font-semibold text-sm">{conv.customerName}</p>
+                            <span className="text-xs text-muted-foreground">{conv.time}</span>
+                        </div>
+                      <p className="text-xs text-muted-foreground truncate font-medium">{conv.subject}</p>
+                       <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground truncate">{conv.lastMessage}</p>
                             {conv.isUnread && <span className="h-2 w-2 rounded-full bg-primary mt-1"></span>}
                         </div>
-                      <p className="text-xs text-muted-foreground truncate">{conv.subject}</p>
-                      <p className="text-xs text-muted-foreground truncate">{conv.lastMessage}</p>
                     </div>
                   </div>
                 </button>
