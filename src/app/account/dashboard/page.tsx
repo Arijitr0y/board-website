@@ -62,13 +62,13 @@ const MessagesView = () => {
             subject: 'DFM Review: IoT Weather Station',
             relatedTo: 'DFM-2024-001',
             lastMessage: 'Sounds good, please proceed.',
-            time: '2h ago',
+            time: 'Jul 21, 2024, 2:15 PM',
             isUnread: false,
             messages: [
-                { sender: 'M', text: 'Hi John, we noticed a potential issue with the trace clearances on your "IoT Weather Station" design. We recommend increasing the spacing to avoid shorts during fabrication. Do you approve this change?', time: '1d ago' },
-                { sender: 'U', text: 'Thanks for catching that. Yes, please go ahead and make the recommended adjustment.', time: '12h ago' },
-                { sender: 'M', text: 'Excellent, we will proceed with the updated design. Fabrication will begin shortly.', time: '11h ago' },
-                { sender: 'U', text: 'Sounds good, please proceed.', time: '2h ago' },
+                { sender: 'M', text: 'Hi John, we noticed a potential issue with the trace clearances on your "IoT Weather Station" design. We recommend increasing the spacing to avoid shorts during fabrication. Do you approve this change?', time: 'Jul 20, 2024, 11:30 AM' },
+                { sender: 'U', text: 'Thanks for catching that. Yes, please go ahead and make the recommended adjustment.', time: 'Jul 21, 2024, 9:45 AM' },
+                { sender: 'M', text: 'Excellent, we will proceed with the updated design. Fabrication will begin shortly.', time: 'Jul 21, 2024, 10:00 AM' },
+                { sender: 'U', text: 'Sounds good, please proceed.', time: 'Jul 21, 2024, 2:15 PM' },
             ],
         },
         {
@@ -76,11 +76,11 @@ const MessagesView = () => {
             subject: 'Order Update: PCB-2024-002',
             relatedTo: 'PCB-2024-002',
             lastMessage: 'Great, thanks for the update!',
-            time: '3d ago',
+            time: 'Jul 18, 2024, 5:30 PM',
             isUnread: true,
             messages: [
-                 { sender: 'M', text: 'Your order PCB-2024-002 for the "Audio Amplifier Board" has been shipped. You can find the tracking details on the order page.', time: '3d ago' },
-                 { sender: 'U', text: 'Great, thanks for the update!', time: '3d ago' },
+                 { sender: 'M', text: 'Your order PCB-2024-002 for the "Audio Amplifier Board" has been shipped. You can find the tracking details on the order page.', time: 'Jul 18, 2024, 5:30 PM' },
+                 { sender: 'U', text: 'Great, thanks for the update!', time: 'Jul 18, 2024, 5:32 PM' },
             ]
         },
         {
@@ -88,14 +88,14 @@ const MessagesView = () => {
             subject: 'Payment Query: Invoice INV-2023-001',
             relatedTo: 'INV-2023-001',
             lastMessage: 'Yes, that resolves it. Thank you.',
-            time: '1w ago',
+            time: 'Jul 15, 2024, 11:00 AM',
             isUnread: false,
             messages: [
-                { sender: 'U', text: 'Hi, I have a question about a charge on invoice INV-2023-001.', time: '1w ago' },
-                { sender: 'M', text: 'Of course, I can help with that. Could you please specify the line item you are referring to?', time: '1w ago' },
-                { sender: 'U', text: 'It was for the expedited shipping fee, I thought it was included.', time: '1w ago' },
-                { sender: 'M', text: 'I see. The quote was updated to include that when the 2-day shipping was selected. I can send over the revised quote for your records.', time: '6d ago' },
-                { sender: 'U', text: 'Yes, that resolves it. Thank you.', time: '6d ago' },
+                { sender: 'U', text: 'Hi, I have a question about a charge on invoice INV-2023-001.', time: 'Jul 14, 2024, 3:00 PM' },
+                { sender: 'M', text: 'Of course, I can help with that. Could you please specify the line item you are referring to?', time: 'Jul 14, 2024, 3:05 PM' },
+                { sender: 'U', text: 'It was for the expedited shipping fee, I thought it was included.', time: 'Jul 14, 2024, 3:10 PM' },
+                { sender: 'M', text: 'I see. The quote was updated to include that when the 2-day shipping was selected. I can send over the revised quote for your records.', time: 'Jul 15, 2024, 10:55 AM' },
+                { sender: 'U', text: 'Yes, that resolves it. Thank you.', time: 'Jul 15, 2024, 11:00 AM' },
             ]
         },
     ];
