@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { PcbConfig, BuildTime, ShippingMethod } from '@/types';
 
 interface CartItem {
@@ -23,8 +23,46 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const getInitialCartState = (): CartItem[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  const mockFile = new File([''], 'weather-station-v2.zip', { type: 'application/zip' });
+  const mockConfig: PcbConfig = {
+    layers: '2',
+    quantity: 15,
+    material: 'FR-4',
+    thickness: 1.6,
+    size: { width: 80, height: 60 },
+    baseMaterial: 'FR4',
+    discreteDesign: 1,
+    deliveryFormat: 'Single PCB',
+    maskColor: 'Green',
+    pcbFinish: 'HASL Finish',
+    copperThickness: '1 oz (35 um)',
+  };
+  return [
+    {
+      id: 'mock-item-1',
+      gerberFile: mockFile,
+      config: mockConfig,
+      quote: 8500,
+      buildTime: '5-6',
+      shippingMethod: 'standard',
+    },
+  ];
+};
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      setItems(getInitialCartState());
+      setIsInitialized(true);
+    }
+  }, [isInitialized]);
 
   const addItem = (item: CartItem) => {
     setItems((prevItems) => [...prevItems, item]);
