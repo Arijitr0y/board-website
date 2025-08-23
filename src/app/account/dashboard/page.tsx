@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -89,7 +89,7 @@ const OrdersView = () => {
                     </TableHeader>
                     <TableBody>
                         {orders.map((order) => (
-                            <TableRow key={order.id}>
+                            <TableRow key={order.id} className="cursor-pointer" onClick={() => alert(`Viewing details for order ${order.id}`)}>
                                 <TableCell className="font-medium">{order.id}</TableCell>
                                 <TableCell>
                                     <div className="font-medium">{order.projectName}</div>
@@ -98,10 +98,17 @@ const OrdersView = () => {
                                 <TableCell>{getStatusBadge(order.status)}</TableCell>
                                 <TableCell>{order.date}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="outline" size="sm">
-                                        <Truck className="mr-2 h-4 w-4" />
-                                        Track Order
-                                    </Button>
+                                    {order.status === 'Shipped' ? (
+                                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); alert(`Tracking order ${order.id}`); }}>
+                                            <Truck className="mr-2 h-4 w-4" />
+                                            Track Order
+                                        </Button>
+                                    ) : (
+                                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); alert(`Viewing details for order ${order.id}`); }}>
+                                            <Eye className="mr-2 h-4 w-4" />
+                                            View Details
+                                        </Button>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -408,3 +415,4 @@ export default function AccountDashboardPage() {
     </div>
   );
 }
+
