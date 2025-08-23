@@ -5,14 +5,14 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 
-type View = 'orders' | 'profile' | 'addresses' | 'settings';
+type View = 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
 
 const SidebarNavItem = ({
   icon,
@@ -150,6 +150,20 @@ const AddressesView = () => {
     );
 };
 
+const PaymentsView = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Payments & Invoices</CardTitle>
+            <CardDescription>Manage your saved payment methods and view your invoice history.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="text-center py-12 text-muted-foreground">
+                <p>No payment methods saved.</p>
+            </div>
+        </CardContent>
+    </Card>
+);
+
 const SettingsView = () => (
     <Card>
         <CardHeader>
@@ -206,6 +220,8 @@ export default function AccountDashboardPage() {
         return <ProfileView />;
       case 'addresses':
         return <AddressesView />;
+      case 'payments':
+        return <PaymentsView />;
       case 'settings':
         return <SettingsView />;
       default:
@@ -246,6 +262,12 @@ export default function AccountDashboardPage() {
                                    title="Addresses"
                                    isActive={activeView === 'addresses'}
                                    onClick={() => setActiveView('addresses')}
+                                />
+                               <SidebarNavItem 
+                                   icon={<CreditCard className="h-5 w-5" />}
+                                   title="Payments & Invoices"
+                                   isActive={activeView === 'payments'}
+                                   onClick={() => setActiveView('payments')}
                                 />
                                <SidebarNavItem 
                                    icon={<Settings className="h-5 w-5" />}
