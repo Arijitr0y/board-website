@@ -135,9 +135,6 @@ const AddressesView = () => {
                     onEditClick={() => { /* Handle edit */ }}
                 />
             </CardContent>
-            <CardFooter className="border-t pt-6">
-                <Button variant="outline">Add New Address</Button>
-            </CardFooter>
         </Card>
     );
 };
