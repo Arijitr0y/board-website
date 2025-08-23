@@ -23,11 +23,13 @@ const SidebarNavItem = ({
   title,
   isActive,
   onClick,
+  count,
 }: {
   icon: React.ReactNode;
   title: string;
   isActive: boolean;
   onClick: () => void;
+  count?: number;
 }) => (
   <button
     onClick={onClick}
@@ -40,6 +42,11 @@ const SidebarNavItem = ({
   >
     {icon}
     <span className="flex-grow">{title}</span>
+    {count && count > 0 && (
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            {count}
+        </span>
+    )}
     <ChevronRight className={cn("h-5 w-5 transition-transform", isActive ? "translate-x-1" : "")} />
   </button>
 );
@@ -116,7 +123,7 @@ const OrdersView = () => {
                     </TableHeader>
                     <TableBody>
                         {orders.map((order) => (
-                            <TableRow key={order.id} className="cursor-pointer" onClick={() => router.push(`/account/orders/${order.id}`)}>
+                            <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/account/orders/${order.id}`)}>
                                 <TableCell className="font-medium">{order.id}</TableCell>
                                 <TableCell>
                                     <div className="font-medium">{order.projectName}</div>
@@ -408,6 +415,7 @@ export default function AccountDashboardPage() {
                                    title="Messages"
                                    isActive={activeView === 'messages'}
                                    onClick={() => setActiveView('messages')}
+                                   count={3}
                                 />
                                <SidebarNavItem
                                    icon={<ClipboardCheck className="h-5 w-5" />}
@@ -460,3 +468,5 @@ export default function AccountDashboardPage() {
     </div>
   );
 }
+
+    
