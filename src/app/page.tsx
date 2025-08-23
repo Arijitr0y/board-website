@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Header } from '@/components/pcb-flow/header';
 
-const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
+const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title:string; description: string }) => (
   <div className="flex flex-col items-center p-6 text-center bg-card rounded-lg shadow-md transition-transform hover:scale-105">
     <div className="mb-4 text-primary">{icon}</div>
     <h3 className="mb-2 text-xl font-bold">{title}</h3>
