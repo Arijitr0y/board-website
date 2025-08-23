@@ -5,10 +5,12 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 type View = 'orders' | 'profile' | 'addresses' | 'settings';
 
@@ -145,16 +147,40 @@ const SettingsView = () => (
             <CardTitle>Account Settings</CardTitle>
             <CardDescription>Update your password and communication preferences.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+            <div className="space-y-2">
+                <h4 className="font-medium">Change Password</h4>
+                <p className="text-sm text-muted-foreground">For your security, we recommend using a strong, unique password.</p>
+                <Button variant="outline">Change Password</Button>
+            </div>
+            
+            <Separator />
+
             <div className="space-y-4">
-                <div>
-                    <h4 className="font-medium">Change Password</h4>
-                    <Button variant="outline" className="mt-2">Change Password</Button>
+                <h4 className="font-medium">Communication Preferences</h4>
+                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div>
+                      <Label htmlFor="newsletter" className="font-medium flex items-center gap-2"><Bell className="h-4 w-4"/>Promotions & Newsletter</Label>
+                      <p className="text-xs text-muted-foreground mt-1">Receive updates on new products, special offers, and more.</p>
+                    </div>
+                    <Switch id="newsletter" defaultChecked />
                 </div>
-                 <div>
-                    <h4 className="font-medium">Communication Preferences</h4>
-                     <p className="text-sm text-muted-foreground">Manage your notification settings.</p>
-                </div>
+            </div>
+            
+            <Separator />
+
+            <div className="space-y-2">
+                <h4 className="font-medium flex items-center gap-2"><LogOut className="h-5 w-5"/>Session Management</h4>
+                <p className="text-sm text-muted-foreground">This will log you out of all other active sessions on other devices.</p>
+                <Button variant="outline">Log Out From All Devices</Button>
+            </div>
+            
+            <Separator />
+            
+            <div className="space-y-2 p-4 rounded-lg border border-destructive/50 bg-destructive/10">
+                <h4 className="font-medium flex items-center gap-2 text-destructive"><Trash2 className="h-5 w-5"/>Danger Zone</h4>
+                <p className="text-sm text-destructive/80">Deleting your account is a permanent action and cannot be undone.</p>
+                <Button variant="destructive">Delete My Account</Button>
             </div>
         </CardContent>
     </Card>
