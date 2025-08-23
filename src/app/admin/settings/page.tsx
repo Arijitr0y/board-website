@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 export default function SettingsPage() {
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6">
+      <h1 className="text-3xl font-semibold">Website Settings</h1>
       <div className="grid gap-6">
         <Card>
           <CardHeader>
@@ -42,8 +43,31 @@ export default function SettingsPage() {
                 <Label htmlFor="store-description">Store Description</Label>
                 <Textarea id="store-description" defaultValue="High-quality PCB fabrication and assembly." />
             </div>
+             <div className="space-y-2">
+                <Label htmlFor="store-logo">Store Logo</Label>
+                <Input id="store-logo" type="file" />
+            </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Gateway</CardTitle>
+            <CardDescription>
+              Connect your payment gateway to start accepting payments.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             <div className="space-y-2">
+                <Label htmlFor="api-key">Razorpay API Key</Label>
+                <Input id="api-key" placeholder="key_..." />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="api-secret">Razorpay API Secret</Label>
+                <Input id="api-secret" type="password" />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Manufacturing Options</CardTitle>
