@@ -178,8 +178,8 @@ const SettingsView = () => (
             <Separator />
             
             <div className="space-y-2 p-4 rounded-lg border border-destructive/50 bg-destructive/10">
-                <h4 className="font-medium flex items-center gap-2 text-destructive"><Trash2 className="h-5 w-5"/>Danger Zone</h4>
-                <p className="text-sm text-destructive/80">Deleting your account is a permanent action and cannot be undone.</p>
+                <h4 className="font-medium flex items-center gap-2 text-destructive"><Trash2 className="h-5 w-5"/>Delete My Account</h4>
+                <p className="text-sm text-destructive/80">This action is permanent. Your account will be scheduled for deletion and will be permanently removed after 60 days if you do not log in.</p>
                 <Button variant="destructive">Delete My Account</Button>
             </div>
         </CardContent>
