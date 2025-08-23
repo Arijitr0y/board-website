@@ -13,6 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type View = 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
 
@@ -43,6 +45,7 @@ const SidebarNavItem = ({
 );
 
 const OrdersView = () => {
+    const router = useRouter();
     const orders = [
         { id: 'PCB-2024-003', projectName: 'IoT Weather Station', gerberName: 'weather-station-v2.zip', date: '2024-07-20', status: 'In Fabrication' },
         { id: 'PCB-2024-002', projectName: 'Audio Amplifier Board', gerberName: 'amp-board-rev-b.zip', date: '2024-07-15', status: 'Shipped' },
@@ -89,7 +92,7 @@ const OrdersView = () => {
                     </TableHeader>
                     <TableBody>
                         {orders.map((order) => (
-                            <TableRow key={order.id} className="cursor-pointer" onClick={() => alert(`Viewing details for order ${order.id}`)}>
+                            <TableRow key={order.id} className="cursor-pointer" onClick={() => router.push(`/account/orders/${order.id}`)}>
                                 <TableCell className="font-medium">{order.id}</TableCell>
                                 <TableCell>
                                     <div className="font-medium">{order.projectName}</div>
@@ -104,9 +107,11 @@ const OrdersView = () => {
                                             Track Order
                                         </Button>
                                     ) : (
-                                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); alert(`Viewing details for order ${order.id}`); }}>
-                                            <Eye className="mr-2 h-4 w-4" />
-                                            View Details
+                                        <Button variant="ghost" size="sm" asChild onClick={(e) => e.stopPropagation()}>
+                                            <Link href={`/account/orders/${order.id}`}>
+                                                <Eye className="mr-2 h-4 w-4" />
+                                                View Details
+                                            </Link>
                                         </Button>
                                     )}
                                 </TableCell>
@@ -415,4 +420,3 @@ export default function AccountDashboardPage() {
     </div>
   );
 }
-
