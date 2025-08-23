@@ -27,6 +27,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { File, ListFilter, MoreHorizontal, PlusCircle } from "lucide-react"
 
