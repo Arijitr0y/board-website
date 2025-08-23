@@ -1,16 +1,18 @@
-
 'use client';
 
 import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 type View = 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
 
@@ -150,16 +152,85 @@ const AddressesView = () => {
     );
 };
 
+
+const PaymentMethodCard = ({ cardType, last4, expiry, isDefault }: { cardType: 'Visa' | 'Mastercard'; last4: string; expiry: string; isDefault: boolean }) => (
+    <div className="border rounded-lg p-4 flex justify-between items-center bg-muted/50">
+        <div className="flex items-center gap-4">
+            <CreditCard className="h-8 w-8 text-muted-foreground" />
+            <div>
+                <p className="font-semibold">{cardType} ending in {last4}</p>
+                <p className="text-sm text-muted-foreground">Expires {expiry}</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-2">
+            {isDefault && <Badge variant="secondary">Default</Badge>}
+            <Button variant="ghost" size="sm">Edit</Button>
+        </div>
+    </div>
+);
+
+const InvoiceHistoryTable = () => {
+    const invoices = [
+        { id: 'INV-2023-001', date: '2023-10-15', amount: '₹12,500.00', status: 'Paid' },
+        { id: 'INV-2023-002', date: '2023-09-22', amount: '₹8,750.00', status: 'Paid' },
+        { id: 'INV-2023-003', date: '2023-08-30', amount: '₹15,200.00', status: 'Paid' },
+    ];
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Invoice ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {invoices.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">{invoice.id}</TableCell>
+                        <TableCell>{invoice.date}</TableCell>
+                        <TableCell>{invoice.amount}</TableCell>
+                        <TableCell><Badge variant={invoice.status === 'Paid' ? 'default' : 'destructive'} className="bg-accent text-accent-foreground">{invoice.status}</Badge></TableCell>
+                        <TableCell className="text-right">
+                            <Button variant="outline" size="sm">
+                                <Download className="mr-2 h-4 w-4" />
+                                Download
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+};
+
 const PaymentsView = () => (
     <Card>
         <CardHeader>
-            <CardTitle>Payments & Invoices</CardTitle>
+            <CardTitle>Payments &amp; Invoices</CardTitle>
             <CardDescription>Manage your saved payment methods and view your invoice history.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="text-center py-12 text-muted-foreground">
-                <p>No payment methods saved.</p>
-            </div>
+            <Tabs defaultValue="payment-methods">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="payment-methods">Payment Methods</TabsTrigger>
+                    <TabsTrigger value="invoice-history">Invoice History</TabsTrigger>
+                </TabsList>
+                <TabsContent value="payment-methods" className="mt-6">
+                     <div className="space-y-4">
+                        <PaymentMethodCard cardType="Visa" last4="1234" expiry="08/2026" isDefault={true} />
+                        <PaymentMethodCard cardType="Mastercard" last4="5678" expiry="12/2024" isDefault={false} />
+                        <Button variant="outline" className="w-full">
+                           <PlusCircle className="mr-2 h-4 w-4" /> Add a new payment method
+                        </Button>
+                    </div>
+                </TabsContent>
+                <TabsContent value="invoice-history" className="mt-6">
+                    <InvoiceHistoryTable />
+                </TabsContent>
+            </Tabs>
         </CardContent>
     </Card>
 );
@@ -183,7 +254,7 @@ const SettingsView = () => (
                 <h4 className="font-medium">Communication Preferences</h4>
                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                     <div>
-                      <Label htmlFor="newsletter" className="font-medium flex items-center gap-2"><Bell className="h-4 w-4"/>Promotions & Newsletter</Label>
+                      <Label htmlFor="newsletter" className="font-medium flex items-center gap-2"><Bell className="h-4 w-4"/>Promotions &amp; Newsletter</Label>
                       <p className="text-xs text-muted-foreground mt-1">Receive updates on new products, special offers, and more.</p>
                     </div>
                     <Switch id="newsletter" defaultChecked />

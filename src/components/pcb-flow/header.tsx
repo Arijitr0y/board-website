@@ -1,8 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
-import { CircuitBoard, ShoppingCart, ChevronDown, User } from "lucide-react";
+import { CircuitBoard, ShoppingCart, ChevronDown, User, FileText } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
@@ -12,6 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils";
 
@@ -93,6 +93,10 @@ export function Header() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
                     <Link href="/account/dashboard"><User className="mr-2 h-4 w-4" /> My Account</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                   <DropdownMenuItem asChild>
+                    <Link href="/account/dashboard?view=payments"><FileText className="mr-2 h-4 w-4" /> Invoices</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
