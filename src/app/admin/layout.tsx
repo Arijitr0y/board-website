@@ -1,5 +1,4 @@
 
-
 import { AdminSidebar } from "@/components/admin/sidebar";
 import { Header } from "@/components/admin/header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
