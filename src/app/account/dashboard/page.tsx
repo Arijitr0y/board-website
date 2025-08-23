@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-type View = 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
+type View = 'messages' | 'pcbReviews' | 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
 
 const SidebarNavItem = ({
   icon,
@@ -42,6 +42,30 @@ const SidebarNavItem = ({
     <span className="flex-grow">{title}</span>
     <ChevronRight className={cn("h-5 w-5 transition-transform", isActive ? "translate-x-1" : "")} />
   </button>
+);
+
+const MessagesView = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Messages</CardTitle>
+            <CardDescription>View your messages and notifications.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <p>Messages content goes here.</p>
+        </CardContent>
+    </Card>
+);
+
+const PcbReviewsView = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>PCB Reviews</CardTitle>
+            <CardDescription>Review your PCB designs and analysis reports.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <p>PCB Reviews content goes here.</p>
+        </CardContent>
+    </Card>
 );
 
 const OrdersView = () => {
@@ -344,6 +368,10 @@ export default function AccountDashboardPage() {
 
   const renderContent = () => {
     switch (activeView) {
+      case 'messages':
+        return <MessagesView />;
+      case 'pcbReviews':
+        return <PcbReviewsView />;
       case 'orders':
         return <OrdersView />;
       case 'profile':
@@ -375,6 +403,18 @@ export default function AccountDashboardPage() {
                     <Card>
                        <CardContent className="p-2">
                            <nav className="space-y-1">
+                               <SidebarNavItem
+                                   icon={<MessageSquare className="h-5 w-5" />}
+                                   title="Messages"
+                                   isActive={activeView === 'messages'}
+                                   onClick={() => setActiveView('messages')}
+                                />
+                               <SidebarNavItem
+                                   icon={<ClipboardCheck className="h-5 w-5" />}
+                                   title="PCB Reviews"
+                                   isActive={activeView === 'pcbReviews'}
+                                   onClick={() => setActiveView('pcbReviews')}
+                                />
                                <SidebarNavItem 
                                    icon={<Package className="h-5 w-5" />}
                                    title="My Orders"
