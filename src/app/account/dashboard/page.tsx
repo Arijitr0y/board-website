@@ -213,7 +213,7 @@ const PaymentsView = () => (
             <CardDescription>Manage your saved payment methods and view your invoice history.</CardDescription>
         </CardHeader>
         <CardContent>
-            <Tabs defaultValue="payment-methods">
+            <Tabs defaultValue="invoice-history">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="payment-methods">Payment Methods</TabsTrigger>
                     <TabsTrigger value="invoice-history">Invoice History</TabsTrigger>
