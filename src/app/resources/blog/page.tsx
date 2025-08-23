@@ -83,22 +83,24 @@ export default function BlogPage() {
                         className="w-full object-cover"
                         data-ai-hint={featuredPost.imageHint}
                       />
-                      <CardHeader>
-                        <CardTitle className="text-3xl font-bold hover:text-primary transition-colors">{featuredPost.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground mb-4">{featuredPost.description}</p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2"><User className="h-4 w-4" /> {featuredPost.author}</div>
-                          <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> {featuredPost.date}</div>
-                        </div>
-                      </CardContent>
-                       <CardFooter>
-                         <Button variant="link" className="p-0" asChild>
-                           <Link href={`/resources/blog/${featuredPost.slug}`}>Read More <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                         </Button>
-                      </CardFooter>
                     </Link>
+                    <CardHeader>
+                      <Link href={`/resources/blog/${featuredPost.slug}`}>
+                        <CardTitle className="text-3xl font-bold hover:text-primary transition-colors">{featuredPost.title}</CardTitle>
+                      </Link>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground mb-4">{featuredPost.description}</p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2"><User className="h-4 w-4" /> {featuredPost.author}</div>
+                        <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> {featuredPost.date}</div>
+                      </div>
+                    </CardContent>
+                     <CardFooter>
+                       <Button variant="link" className="p-0" asChild>
+                         <Link href={`/resources/blog/${featuredPost.slug}`}>Read More <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                       </Button>
+                    </CardFooter>
                  </Card>
               )}
 
