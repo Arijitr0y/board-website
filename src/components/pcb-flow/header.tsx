@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils";
+import { LoadingLink } from "@/context/loading-context";
 
 export function Header() {
   const cart = useCart();
@@ -24,16 +25,16 @@ export function Header() {
     <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
+          <LoadingLink href="/" className="flex items-center gap-3">
             <CircuitBoard className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold text-foreground">PCB Flow</h1>
-          </Link>
+          </LoadingLink>
           
           <div className="flex items-center gap-4">
             <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-               <Link href="/order" className="text-foreground/60 transition-colors hover:text-foreground/80">
+               <LoadingLink href="/order" className="text-foreground/60 transition-colors hover:text-foreground/80">
                 Instant Quote
-              </Link>
+              </LoadingLink>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-1 px-2 text-foreground/60 transition-colors hover:text-foreground/80">
@@ -42,13 +43,13 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem asChild>
-                    <Link href="/services/prototyping">PCB Prototyping</Link>
+                    <LoadingLink href="/services/prototyping">PCB Prototyping</LoadingLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/services/assembly">PCB Assembly</Link>
+                    <LoadingLink href="/services/assembly">PCB Assembly</LoadingLink>
                   </DropdownMenuItem>
                    <DropdownMenuItem asChild>
-                    <Link href="/services/dfm-analysis">DFM Analysis</Link>
+                    <LoadingLink href="/services/dfm-analysis">DFM Analysis</LoadingLink>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -60,19 +61,19 @@ export function Header() {
                 </DropdownMenuTrigger>
                  <DropdownMenuContent align="start">
                   <DropdownMenuItem asChild>
-                    <Link href="/resources/blog">Blog</Link>
+                    <LoadingLink href="/resources/blog">Blog</LoadingLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/resources/gerber-viewer">Gerber Viewer</Link>
+                    <LoadingLink href="/resources/gerber-viewer">Gerber Viewer</LoadingLink>
                   </DropdownMenuItem>
                    <DropdownMenuItem asChild>
-                    <Link href="/resources/capabilities">Capabilities</Link>
+                    <LoadingLink href="/resources/capabilities">Capabilities</LoadingLink>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </nav>
             <Button asChild variant="ghost" className="relative">
-                <Link href="/cart">
+                <LoadingLink href="/cart">
                     <ShoppingCart className="h-5 w-5"/>
                     {items.length > 0 && (
                         <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground transform translate-x-1/2 -translate-y-1/2">
@@ -80,7 +81,7 @@ export function Header() {
                         </span>
                     )}
                     <span className="sr-only">Cart</span>
-                </Link>
+                </LoadingLink>
             </Button>
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -93,11 +94,11 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link href="/account/dashboard"><User className="mr-2 h-4 w-4" /> My Account</Link>
+                    <LoadingLink href="/account/dashboard"><User className="mr-2 h-4 w-4" /> My Account</LoadingLink>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                    <DropdownMenuItem asChild>
-                    <Link href="/account/dashboard?view=payments"><FileText className="mr-2 h-4 w-4" /> Invoices</Link>
+                    <LoadingLink href="/account/dashboard?view=payments"><FileText className="mr-2 h-4 w-4" /> Invoices</LoadingLink>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
