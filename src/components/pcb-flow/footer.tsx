@@ -57,7 +57,7 @@ export function Footer() {
               <li><FooterLink href="#">Terms Of Use</FooterLink></li>
               <li><FooterLink href="#">Security</FooterLink></li>
               <li><FooterLink href="#">Privacy</FooterLink></li>
-              <li><FooterLink href="#">Sitemap</FooterLink></li>
+              <li><FooterLink href="/sitemap">Sitemap</FooterLink></li>
             </ul>
           </div>
 
