@@ -35,7 +35,9 @@ export function Header() {
       setUser(session?.user ?? null)
       setIsLoading(false)
       // Refresh the page on auth state change to re-fetch server components
-      router.refresh();
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        router.refresh();
+      }
     })
 
     return () => {

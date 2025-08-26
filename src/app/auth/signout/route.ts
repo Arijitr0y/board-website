@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     await supabase.auth.signOut()
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
   if (!siteUrl) {
     // Fallback if the site URL isn't set, though it should be.
     return new NextResponse('Configuration error: Site URL not set.', { status: 500 });
