@@ -1,6 +1,4 @@
 
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import { Header } from '@/components/pcb-flow/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -34,13 +32,6 @@ const getStatusBadgeVariant = (status: string) => {
 }
 
 export default async function OrderHistoryPage() {
-  const supabase = createClient()
-
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/login')
-  }
-  
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />

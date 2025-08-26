@@ -2,47 +2,20 @@
 "use client";
 
 import Link from "next/link";
-import { CircuitBoard, ShoppingCart, ChevronDown, User as UserIcon, LifeBuoy, LogOut, LayoutDashboard } from "lucide-react";
+import { CircuitBoard, ShoppingCart, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel
 } from "@/components/ui/dropdown-menu"
 import { LoadingLink } from "@/context/loading-context";
-import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
-import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
-
 
 export function Header() {
   const { items } = useCart();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
-    };
-
-    getUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [supabase]);
   
   return (
     <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
@@ -107,49 +80,9 @@ export function Header() {
                 </LoadingLink>
             </Button>
             
-            {!loading && user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.user_metadata.avatar_url} alt={user.email} />
-                        <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.user_metadata.full_name || user.email}</p>
-                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <LoadingLink href="/account"><UserIcon className="mr-2 h-4 w-4" />Account</LoadingLink>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem asChild>
-                      <LoadingLink href="/order-history"><LayoutDashboard className="mr-2 h-4 w-4" />Order History</LoadingLink>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                       <LoadingLink href="#"><LifeBuoy className="mr-2 h-4 w-4" />Support</LoadingLink>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <form action="/auth/signout" method="post">
-                        <button type="submit" className="w-full">
-                           <DropdownMenuItem>
-                             <LogOut className="mr-2 h-4 w-4" />
-                            Sign out
-                           </DropdownMenuItem>
-                        </button>
-                    </form>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-            ) : (
-                 <Button asChild>
-                    <LoadingLink href="/login">Login</LoadingLink>
-                </Button>
-            )}
+            <Button asChild>
+                <LoadingLink href="/login">Login</LoadingLink>
+            </Button>
           </div>
         </div>
       </div>
