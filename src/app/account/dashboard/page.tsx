@@ -21,6 +21,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 type View = 'messages' | 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
+type Order = {
+    id: string;
+    project_name: string;
+    gerber_name: string;
+    created_at: string;
+    status: string;
+}
 
 const SidebarNavItem = ({
   icon,
@@ -193,11 +200,40 @@ const MessagesView = () => {
 
 const OrdersView = () => {
     const router = useRouter();
-    const orders = [
-        { id: 'PCB-2024-003', projectName: 'IoT Weather Station', gerberName: 'weather-station-v2.zip', date: '2024-07-20', status: 'In Fabrication' },
-        { id: 'PCB-2024-002', projectName: 'Audio Amplifier Board', gerberName: 'amp-board-rev-b.zip', date: '2024-07-15', status: 'Shipped' },
-        { id: 'PCB-2024-001', projectName: 'LED Matrix Display', gerberName: 'led-display-controller.zip', date: '2024-06-28', status: 'Delivered' },
-    ];
+    const supabase = createClientComponentClient();
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (user) {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('id, project_name, gerber_name, created_at, status')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.warn(error);
+                } else if (data) {
+                    setOrders(data);
+                }
+            } else {
+                // This block can be removed once login is fully functional
+                // Mock data for display in iframe without login
+                setOrders([
+                    { id: 'PCB-2024-003', project_name: 'IoT Weather Station', gerber_name: 'weather-station-v2.zip', created_at: '2024-07-20', status: 'In Fabrication' },
+                    { id: 'PCB-2024-002', project_name: 'Audio Amplifier Board', gerber_name: 'amp-board-rev-b.zip', created_at: '2024-07-15', status: 'Shipped' },
+                    { id: 'PCB-2024-001', project_name: 'LED Matrix Display', gerber_name: 'led-display-controller.zip', created_at: '2024-06-28', status: 'Delivered' },
+                ]);
+            }
+            setLoading(false);
+        };
+        fetchOrders();
+    }, [supabase]);
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -211,6 +247,20 @@ const OrdersView = () => {
                 return <Badge variant="outline">{status}</Badge>;
         }
     };
+    
+    if (loading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>My Orders</CardTitle>
+                    <CardDescription>Track, view history, and manage your PCB orders.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center items-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </CardContent>
+            </Card>
+        );
+    }
     
     return (
         <Card>
@@ -238,15 +288,22 @@ const OrdersView = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {orders.map((order) => (
+                         {orders.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-24 text-center">
+                                    No orders found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            orders.map((order) => (
                             <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/account/orders/${order.id}`)}>
                                 <TableCell className="font-medium">{order.id}</TableCell>
                                 <TableCell>
-                                    <div className="font-medium">{order.projectName}</div>
-                                    <div className="text-xs text-muted-foreground">{order.gerberName}</div>
+                                    <div className="font-medium">{order.project_name}</div>
+                                    <div className="text-xs text-muted-foreground">{order.gerber_name}</div>
                                 </TableCell>
                                 <TableCell>{getStatusBadge(order.status)}</TableCell>
-                                <TableCell>{order.date}</TableCell>
+                                <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
                                 <TableCell className="text-right">
                                     {order.status === 'Shipped' ? (
                                         <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); alert(`Tracking order ${order.id}`); }}>
@@ -263,7 +320,7 @@ const OrdersView = () => {
                                     )}
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        )))}
                     </TableBody>
                 </Table>
             </CardContent>
@@ -297,12 +354,13 @@ const ProfileView = () => {
                 } else if (data) {
                     setProfileData({
                         fullName: data.full_name || '',
-                        email: data.email || 'arijit1roy@gmail.com', // Test data
+                        email: data.email || user.email || '',
                         phone: data.phone || '',
                         avatarUrl: data.avatar_url || ''
                     });
                 }
             } else {
+                 // Mock data for iframe preview
                  setProfileData({
                     fullName: 'Arijit Roy',
                     email: 'arijit1roy@gmail.com',
@@ -673,7 +731,3 @@ export default function AccountDashboardPage() {
     </div>
   );
 }
-
-    
-
-    
