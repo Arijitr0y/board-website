@@ -192,7 +192,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     if (/[^0-9]/.test(value)) return; // Only allow digits
 
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1); // Only take the last digit
+    newOtp[index] = value.slice(-1);
     setOtp(newOtp);
 
     // Move to next input
@@ -210,10 +210,16 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, "");
-    if (pastedData.length === 6) {
-        const newOtp = pastedData.split('');
+    if (pastedData) {
+        const newOtp = new Array(6).fill('');
+        for (let i = 0; i < pastedData.length; i++) {
+            if (i < 6) {
+                newOtp[i] = pastedData[i];
+            }
+        }
         setOtp(newOtp);
-        inputRefs.current[5]?.focus();
+        const nextFocusIndex = Math.min(pastedData.length, 5);
+        inputRefs.current[nextFocusIndex]?.focus();
     }
   };
 
@@ -334,7 +340,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                    <FormItem>
                     <FormLabel>One-Time Password</FormLabel>
                     <FormControl>
-                        <div className="flex justify-between gap-2" onPaste={handleOtpPaste}>
+                        <div className="flex justify-between gap-2">
                          {otp.map((digit, index) => (
                             <Input
                                 key={index}
@@ -344,6 +350,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                                 value={digit}
                                 onChange={(e) => handleOtpChange(e, index)}
                                 onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                                onPaste={(e) => handleOtpPaste(e)}
                                 className="w-12 h-14 text-center text-2xl font-semibold border-2 rounded-md transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-ring"
                             />
                         ))}
@@ -390,5 +397,3 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     </Card>
   )
 }
-
-    
