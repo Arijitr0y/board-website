@@ -30,7 +30,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast";
-import { deleteUserAccount } from "../actions";
 import { supabase } from "@/lib/supabase-client";
 
 type View = 'messages' | 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
@@ -621,34 +620,6 @@ const PaymentsView = () => (
 );
 
 const SettingsView = () => {
-    const { toast } = useToast();
-    const router = useRouter();
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const handleDelete = async () => {
-        setIsDeleting(true);
-        try {
-            const result = await deleteUserAccount();
-            if (result.success) {
-                toast({
-                    title: "Account Deleted",
-                    description: "Your account has been permanently deleted.",
-                });
-                router.push('/');
-                router.refresh();
-            }
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Deletion Failed",
-                description: error instanceof Error ? error.message : "An unknown error occurred.",
-            });
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
-
     return (
         <Card>
             <CardHeader>
@@ -682,39 +653,6 @@ const SettingsView = () => {
                     <p className="text-sm text-muted-foreground">This will log you out of all other active sessions on other devices.</p>
                     <Button variant="outline">Log Out From All Devices</Button>
                 </div>
-                
-                <Separator />
-                
-                <div className="space-y-2 p-4 rounded-lg border border-destructive/50 bg-destructive/10">
-                    <h4 className="font-medium flex items-center gap-2 text-destructive"><Trash2 className="h-5 w-5"/>Delete My Account</h4>
-                    <p className="text-sm text-destructive/80">This action is permanent. Your account and all associated data will be removed immediately.</p>
-                    
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="destructive">Delete My Account</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete your
-                                account and remove your data from our servers.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                    onClick={handleDelete}
-                                    disabled={isDeleting}
-                                    className="bg-destructive hover:bg-destructive/90"
-                                >
-                                    {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Yes, delete my account
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
             </CardContent>
         </Card>
     );
@@ -725,14 +663,13 @@ export default function AccountDashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // This check is temporarily disabled for testing in the iframe preview.
-    // const checkUser = async () => {
-    //   const { data: { user } } = await supabase.auth.getUser()
-    //   if (!user) {
-    //     router.push('/login')
-    //   }
-    // }
-    // checkUser()
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+      }
+    }
+    checkUser()
   }, [router])
 
 
