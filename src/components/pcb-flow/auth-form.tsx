@@ -109,7 +109,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         toast({ variant: 'destructive', title: 'Login Failed', description: error.message })
       } else {
         toast({ title: 'Login Successful', description: "Welcome back!" })
-        router.refresh();
+        window.location.href = '/account/dashboard';
       }
     } else if (formType === 'signup') {
         const { email, password } = values as z.infer<typeof signupSchema>;
@@ -172,7 +172,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                 toast({ variant: 'destructive', title: 'Account Creation Failed', description: `Could not save profile: ${profileError.message}` });
             } else {
                 toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
-                router.refresh();
+                window.location.href = '/account/dashboard';
             }
         }
     }
