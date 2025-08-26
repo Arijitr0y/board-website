@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Check, Download, FileText, Package, Rocket, Truck, User, Wrench, Clock, Search } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 
 const getOrderDetails = (id: string) => {
@@ -150,6 +151,19 @@ const OrderHistoryCard = ({ history }: { history: { status: string; date: string
 
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
     const order = getOrderDetails(params.id);
+    const supabase = createClientComponentClient();
+    const router = useRouter();
+
+    useEffect(() => {
+        // This check is temporarily disabled for testing in the iframe preview.
+        // const checkUser = async () => {
+        //   const { data: { user } } = await supabase.auth.getUser()
+        //   if (!user) {
+        //     router.push('/login')
+        //   }
+        // }
+        // checkUser()
+    }, [supabase, router]);
 
     return (
         <div className="flex min-h-screen flex-col bg-background">
