@@ -16,15 +16,17 @@ export async function deleteUserAccount() {
   }
 
   // To delete a user, we need admin privileges.
-  // The service_role key must be available in environment variables.
-  // Ensure SUPABASE_SERVICE_ROLE_KEY is set in your environment.
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error('Missing Supabase service role key for admin action.');
+  // The service_role key must be available.
+  // Replace YOUR_SUPABASE_SERVICE_ROLE_KEY with your actual service role key.
+  const serviceRoleKey = "YOUR_SUPABASE_SERVICE_ROLE_KEY";
+
+  if (!serviceRoleKey || serviceRoleKey === "YOUR_SUPABASE_SERVICE_ROLE_KEY") {
+      throw new Error('Missing Supabase service role key for admin action. Please update it in src/app/account/actions.ts');
   }
   
   const supabaseAdmin = createClient(
     "https://szltcxtyfswimfludums.supabase.co",
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    serviceRoleKey,
     {
       auth: {
         autoRefreshToken: false,
