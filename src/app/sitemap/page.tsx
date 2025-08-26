@@ -45,13 +45,6 @@ export default function SitemapPage() {
     { href: "/resources/capabilities", name: "Capabilities" },
   ];
   
-  const accountLinks = [
-    { href: "/account/dashboard", name: "My Account" },
-    { href: "/account/dashboard?view=orders", name: "My Orders" },
-    { href: "/account/dashboard?view=profile", name: "Profile Information" },
-    { href: "/account/dashboard?view=addresses", name: "Addresses" },
-  ];
-
   const policyLinks = [
     { href: "#", name: "Terms Of Use" },
     { href: "#", name: "Privacy Policy" },
@@ -75,7 +68,6 @@ export default function SitemapPage() {
             <Section title="Main" links={mainLinks} />
             <Section title="Services" links={servicesLinks} />
             <Section title="Resources" links={resourcesLinks} />
-            <Section title="My Account" links={accountLinks} />
             <Section title="Legal" links={policyLinks} />
           </div>
         </div>

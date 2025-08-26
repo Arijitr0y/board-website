@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { PcbConfig, BuildTime, ShippingMethod } from '@/types';
 
 interface CartItem {
@@ -23,44 +23,8 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const getInitialCartState = (): CartItem[] => {
-  // This function now returns an empty array for the initial state on both server and client
-  // to prevent hydration mismatch. The mock data will be loaded client-side only.
-  return [];
-};
-
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>(getInitialCartState());
-
-  useEffect(() => {
-    // This effect runs only on the client side, after the initial render.
-    // This is the correct place to initialize client-side-only state like mock data.
-    const mockFile = new File([''], 'weather-station-v2.zip', { type: 'application/zip' });
-    const mockConfig: PcbConfig = {
-      layers: '2',
-      quantity: 15,
-      material: 'FR-4',
-      thickness: 1.6,
-      size: { width: 80, height: 60 },
-      baseMaterial: 'FR4',
-      discreteDesign: 1,
-      deliveryFormat: 'Single PCB',
-      maskColor: 'Green',
-      pcbFinish: 'HASL Finish',
-      copperThickness: '1 oz (35 um)',
-    };
-    const mockItems = [
-      {
-        id: 'mock-item-1',
-        gerberFile: mockFile,
-        config: mockConfig,
-        quote: 8500,
-        buildTime: '5-6',
-        shippingMethod: 'standard',
-      },
-    ];
-    setItems(mockItems);
-  }, []);
+  const [items, setItems] = useState<CartItem[]>([]);
 
   const addItem = (item: CartItem) => {
     setItems((prevItems) => [...prevItems, item]);
