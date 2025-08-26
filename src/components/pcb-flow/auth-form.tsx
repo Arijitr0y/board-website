@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, ChangeEvent, KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -31,7 +31,7 @@ const signupSchema = z.object({
 });
 
 const otpSchema = z.object({
-    otp: z.string().min(6, { message: 'Please enter the 6-digit code.' }),
+    otp: z.string().length(6, { message: 'Please enter the 6-digit code.' }),
 });
 
 
@@ -49,8 +49,33 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const [otpTimer, setOtpTimer] = useState(180); // 3 minutes in seconds
   const [isTimerActive, setIsTimerActive] = useState(false);
   
-  const formRef = useRef<HTMLFormElement>(null);
-  const [isOtpInputFocused, setIsOtpInputFocused] = useState(false);
+  const [otp, setOtp] = useState<string[]>(new Array(6).fill(""));
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const form = useForm<AuthFormValues>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: { otp: '' },
+  });
+  
+  const currentSchema = formType === 'login' ? loginSchema : formType === 'signup' ? signupSchema : otpSchema;
+
+  useEffect(() => {
+    if (formType === 'otp' && inputRefs.current[0]) {
+      inputRefs.current[0].focus();
+    }
+  }, [formType]);
+  
+  useEffect(() => {
+    // When the form type changes, update the resolver and reset form values.
+    form.reset();
+  }, [formType, form]);
+
+  useEffect(() => {
+    if (otp.join("").length === 6) {
+        form.setValue('otp', otp.join(""));
+        form.handleSubmit(handleAuthAction)();
+    }
+  }, [otp, form]);
 
 
   useEffect(() => {
@@ -65,25 +90,6 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     return () => clearInterval(interval);
   }, [isTimerActive, otpTimer]);
 
-
-  const currentSchema = formType === 'login' ? loginSchema : formType === 'signup' ? signupSchema : otpSchema;
-
-  const form = useForm<AuthFormValues>({
-    resolver: zodResolver(currentSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      firstName: '',
-      lastName: '',
-      phone: '',
-      otp: '',
-    },
-  });
-  
-  useEffect(() => {
-    // When the form type changes, update the resolver and reset form values.
-    form.reset();
-  }, [formType, form]);
 
   const handleResendOtp = async () => {
       if (!signupData?.email) return;
@@ -180,15 +186,34 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         setIsSubmitting(false);
     }
   }
-
-  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  
+  const handleOtpChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
     const { value } = e.target;
-    const otpValue = value.replace(/[^0-9]/g, '').slice(0, 6);
-    form.setValue('otp', otpValue, { shouldValidate: true });
+    if (/[^0-9]/.test(value)) return; // Only allow digits
 
-    if (otpValue.length === 6) {
-      // Automatically submit the form
-      form.handleSubmit(handleAuthAction)();
+    const newOtp = [...otp];
+    newOtp[index] = value.slice(-1); // Only take the last digit
+    setOtp(newOtp);
+
+    // Move to next input
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, "");
+    if (pastedData.length === 6) {
+        const newOtp = pastedData.split('');
+        setOtp(newOtp);
+        inputRefs.current[5]?.focus();
     }
   };
 
@@ -209,7 +234,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form ref={formRef} onSubmit={form.handleSubmit(handleAuthAction)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleAuthAction)} className="space-y-4">
              {formType === 'signup' && (
               <>
                  <div className="grid grid-cols-2 gap-4">
@@ -309,43 +334,22 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                    <FormItem>
                     <FormLabel>One-Time Password</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type="tel" 
-                          maxLength={6}
-                          onChange={handleOtpChange}
-                          onFocus={() => setIsOtpInputFocused(true)}
-                          onBlur={() => setIsOtpInputFocused(false)}
-                          className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-transparent caret-foreground p-0 text-center text-2xl tracking-[1.1em]"
-                          style={{ textIndent: '0.5em' }}
-                          autoFocus
-                        />
-                        <div
-                          className={cn(
-                            "flex justify-between gap-2 transition-all",
-                            isOtpInputFocused && "ring-2 ring-ring ring-offset-2 ring-offset-background rounded-md"
-                           )}
-                          aria-hidden="true"
-                        >
-                          {Array.from({ length: 6 }).map((_, index) => {
-                            const char = field.value?.[index]
-                            return (
-                                <div
-                                  key={index}
-                                  className={cn(
-                                    "w-12 h-14 flex items-center justify-center text-2xl font-semibold border-2 rounded-md transition-all duration-200",
-                                    char ? "border-primary" : "border-input"
-                                  )}
-                                >
-                                  {char || ''}
-                                </div>
-                              )
-                          })}
-                        </div>
+                        <div className="flex justify-between gap-2" onPaste={handleOtpPaste}>
+                         {otp.map((digit, index) => (
+                            <Input
+                                key={index}
+                                ref={(el) => (inputRefs.current[index] = el)}
+                                type="tel"
+                                maxLength={1}
+                                value={digit}
+                                onChange={(e) => handleOtpChange(e, index)}
+                                onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                                className="w-12 h-14 text-center text-2xl font-semibold border-2 rounded-md transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-ring"
+                            />
+                        ))}
                       </div>
                     </FormControl>
-                    <FormMessage className="pt-2" />
+                     <FormMessage className="pt-2" />
                   </FormItem>
                 )}
               />
@@ -386,3 +390,5 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     </Card>
   )
 }
+
+    
