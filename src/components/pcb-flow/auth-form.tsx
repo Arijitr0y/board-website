@@ -36,7 +36,7 @@ const otpSchema = z.object({
 
 
 // Create a combined schema for type inference that includes all possible fields.
-const combinedSchema = loginSchema.merge(signupSchema).merge(otpSchema).partial();
+const combinedSchema = loginSchema.merge(signupSchema).merge(otpSchema);
 type AuthFormValues = z.infer<typeof combinedSchema>;
 
 
@@ -109,8 +109,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         toast({ variant: 'destructive', title: 'Login Failed', description: error.message })
       } else {
         toast({ title: 'Login Successful', description: "Welcome back!" })
-        // Use window.location for a full page reload to ensure session is picked up in iframe.
-        window.location.href = '/account/dashboard';
+        router.refresh();
       }
     } else if (formType === 'signup') {
         const { email, password } = values as z.infer<typeof signupSchema>;
@@ -173,8 +172,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                 toast({ variant: 'destructive', title: 'Account Creation Failed', description: `Could not save profile: ${profileError.message}` });
             } else {
                 toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
-                // Use window.location for a full page reload to ensure session is picked up in iframe.
-                window.location.href = '/account/dashboard';
+                router.refresh();
             }
         }
     }
