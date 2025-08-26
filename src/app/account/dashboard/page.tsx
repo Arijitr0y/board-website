@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/pcb-flow/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
-import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck, Mail, FileCheck, Send, Upload } from "lucide-react";
+import { User, Settings, MapPin, Package, ChevronRight, Edit, Bell, LogOut, Trash2, Search, CreditCard, PlusCircle, Download, FileText, Truck, Eye, MessageSquare, ClipboardCheck, Mail, FileCheck, Send, Upload, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -272,7 +272,60 @@ const OrdersView = () => {
 };
 
 const ProfileView = () => {
-    const [profileImage, setProfileImage] = useState("https://github.com/shadcn.png");
+    const supabase = createClientComponentClient();
+    const [loading, setLoading] = useState(true);
+    const [profileData, setProfileData] = useState({
+        fullName: '',
+        email: '',
+        phone: '',
+        avatarUrl: ''
+    });
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('full_name, email, phone, avatar_url')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) {
+                    console.warn(error);
+                } else if (data) {
+                    setProfileData({
+                        fullName: data.full_name || '',
+                        email: data.email || '',
+                        phone: data.phone || '',
+                        avatarUrl: data.avatar_url || ''
+                    });
+                }
+            }
+            setLoading(false);
+        };
+        fetchProfile();
+    }, [supabase]);
+    
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setProfileData(prev => ({...prev, [name]: value}));
+    }
+
+    if (loading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Profile Information</CardTitle>
+                    <CardDescription>Edit your personal details and contact information.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center items-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card>
@@ -283,18 +336,18 @@ const ProfileView = () => {
             <CardContent className="space-y-6">
                 <div className="flex items-center gap-6 pt-2">
                     <Avatar className="h-24 w-24">
-                        <AvatarImage src={profileImage} alt="User profile picture" />
-                        <AvatarFallback>JD</AvatarFallback>
+                        <AvatarImage src={profileData.avatarUrl || `https://i.pravatar.cc/150?u=${profileData.email}`} alt="User profile picture" />
+                        <AvatarFallback>{profileData.fullName?.[0] || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className="space-y-2">
                         <h3 className="font-medium">Profile Picture</h3>
                         <div className="flex gap-2">
                             <Button variant="outline" size="sm">
                                 <Upload className="mr-2 h-4 w-4" />
-                                {profileImage ? 'Change' : 'Upload'}
+                                {profileData.avatarUrl ? 'Change' : 'Upload'}
                             </Button>
-                            {profileImage && (
-                                <Button variant="ghost" size="sm" onClick={() => setProfileImage("")}>
+                            {profileData.avatarUrl && (
+                                <Button variant="ghost" size="sm" onClick={() => setProfileData(p => ({...p, avatarUrl: ''}))}>
                                     Remove
                                 </Button>
                             )}
@@ -305,23 +358,17 @@ const ProfileView = () => {
 
                 <Separator />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input id="firstName" defaultValue="John" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input id="lastName" defaultValue="Doe" />
-                    </div>
+                <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input id="fullName" name="fullName" value={profileData.fullName} onChange={handleInputChange} />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                    <Input id="email" name="email" type="email" value={profileData.email} onChange={handleInputChange} disabled />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" defaultValue="+91 98765 43210" />
+                    <Input id="phone" name="phone" type="tel" value={profileData.phone} onChange={handleInputChange} />
                 </div>
             </CardContent>
             <CardFooter className="border-t pt-6">
@@ -330,6 +377,7 @@ const ProfileView = () => {
         </Card>
     );
 };
+
 
 const AddressDisplay = ({ title, address, onEditClick }: { title: string; address?: { name: string; line1: string; city: string; zip: string; country: string; }; onEditClick: () => void; }) => (
     <Card>
@@ -617,3 +665,5 @@ export default function AccountDashboardPage() {
     </div>
   );
 }
+
+    
