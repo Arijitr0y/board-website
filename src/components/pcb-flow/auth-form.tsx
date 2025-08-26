@@ -54,7 +54,14 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(otpSchema),
-    defaultValues: { otp: '' },
+    defaultValues: { 
+      otp: '',
+      email: '',
+      password: '',
+      firstName: '',
+      lastName: '',
+      phone: '',
+    },
   });
   
   const currentSchema = formType === 'login' ? loginSchema : formType === 'signup' ? signupSchema : otpSchema;
