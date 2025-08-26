@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -26,6 +27,7 @@ const signupSchema = z.object({
 
 export function AuthForm() {
   const { toast } = useToast()
+  const router = useRouter()
   const [formType, setFormType] = useState<'login' | 'signup'>('login')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isMessageSent, setIsMessageSent] = useState(false)
@@ -45,18 +47,7 @@ export function AuthForm() {
   const handleAuthAction = async (data: z.infer<typeof signupSchema>) => {
     setIsSubmitting(true)
     const supabase = createClient()
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-
-    if (!siteUrl) {
-      toast({
-        variant: 'destructive',
-        title: 'Configuration Error',
-        description: 'Site URL is not configured. Please set NEXT_PUBLIC_SITE_URL.',
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
+    const siteUrl = window.location.origin;
 
     if (formType === 'signup') {
       const { error } = await supabase.auth.signUp({
@@ -87,8 +78,8 @@ export function AuthForm() {
           description: error.message,
         })
       } else {
-        // Redirect to account page after successful login
-        window.location.href = '/account'
+        router.push('/account')
+        router.refresh()
       }
     }
     setIsSubmitting(false)
@@ -106,7 +97,6 @@ export function AuthForm() {
         </Card>
     )
   }
-
 
   return (
     <Card className="w-full max-w-sm">

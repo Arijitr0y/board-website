@@ -17,23 +17,31 @@ import { LoadingLink } from "@/context/loading-context";
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useRouter } from "next/navigation";
 
 
 export function Header() {
   const cart = useCart();
+  const router = useRouter();
   const items = cart ? cart.items : [];
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient()
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data.user)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
       setIsLoading(false)
+      // Refresh the page on auth state change to re-fetch server components
+      router.refresh();
+    })
+
+    return () => {
+      subscription.unsubscribe()
     }
-    checkUser()
-  }, [])
+  }, [router])
   
   return (
     <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
