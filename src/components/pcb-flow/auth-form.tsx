@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -108,8 +109,8 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         toast({ variant: 'destructive', title: 'Login Failed', description: error.message })
       } else {
         toast({ title: 'Login Successful', description: "Welcome back!" })
-        router.push('/account/dashboard')
-        router.refresh()
+        // Use window.location for a full page reload to ensure session is picked up in iframe.
+        window.location.href = '/account/dashboard';
       }
     } else if (formType === 'signup') {
         const { email, password } = values as z.infer<typeof signupSchema>;
@@ -150,7 +151,15 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         } else if (verifyData.user) {
             setIsTimerActive(false);
 
-            // Now that OTP is verified, update the profiles table
+            // Now that OTP is verified, sign in the user to set the password
+             const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (signInError) {
+                toast({ variant: 'destructive', title: 'Account Creation Failed', description: `Could not set password: ${signInError.message}` });
+                return;
+            }
+
+            // Finally, update the profiles table
             const { error: profileError } = await supabase
               .from('profiles')
               .update({
@@ -164,8 +173,8 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                 toast({ variant: 'destructive', title: 'Account Creation Failed', description: `Could not save profile: ${profileError.message}` });
             } else {
                 toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
-                router.push('/account/dashboard');
-                router.refresh();
+                // Use window.location for a full page reload to ensure session is picked up in iframe.
+                window.location.href = '/account/dashboard';
             }
         }
     }
