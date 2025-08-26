@@ -81,7 +81,7 @@ export function Header() {
             </Button>
             
             <Button asChild>
-                <LoadingLink href="/login">Login</LoadingLink>
+                <LoadingLink href="/admin/dashboard">Admin</LoadingLink>
             </Button>
           </div>
         </div>
