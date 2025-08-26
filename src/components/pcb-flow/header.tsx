@@ -113,7 +113,7 @@ export function Header() {
                         <DropdownMenuItem asChild>
                              <Link href="/account">My Account</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
+                        <DropdownMenuItem>
                             <Link href="/order-history">Order History</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
