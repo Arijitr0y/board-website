@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -47,6 +47,10 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const [showPassword, toggleShowPassword] = useToggle(false);
   const [otpTimer, setOtpTimer] = useState(180); // 3 minutes in seconds
   const [isTimerActive, setIsTimerActive] = useState(false);
+  
+  const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
 
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
@@ -78,6 +82,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   useEffect(() => {
     // When the form type changes, update the resolver and reset form values.
     form.reset();
+    setOtp(new Array(6).fill(''));
   }, [formType, form]);
 
   const handleResendOtp = async () => {
@@ -114,6 +119,12 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
             const { email, password } = values as z.infer<typeof signupSchema>;
             setSignupData(values); 
             
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                // If a user is already logged in, sign them out before signing up a new one.
+                await supabase.auth.signOut();
+            }
+
             const { error } = await supabase.auth.signUp({ email, password });
             if (error) throw error;
             
@@ -140,6 +151,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
             
             setIsTimerActive(false);
 
+            // Log in with the verified user credentials to establish a session
             const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
             if (signInError) throw new Error(`Could not set password: ${signInError.message}`);
 
@@ -168,6 +180,38 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         setIsSubmitting(false);
     }
   }
+
+  const handleOtpChange = (element: HTMLInputElement, index: number) => {
+    const value = element.value.replace(/[^0-9]/g, ''); // Only allow numbers
+    
+    if (value.length > 1) {
+        // Handle paste
+        if (value.length === 6) {
+            const newOtp = value.split('');
+            setOtp(newOtp);
+            form.setValue('otp', value, { shouldValidate: true });
+            inputRefs.current[5]?.focus();
+        }
+        return;
+    }
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    form.setValue('otp', newOtp.join(''), { shouldValidate: true });
+
+    // Move to next input if a digit is entered
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
 
   return (
     <Card className="w-full max-w-sm">
@@ -283,11 +327,26 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                   name="otp"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>One-Time Password</FormLabel>
-                      <FormControl>
-                        <Input placeholder="123456" {...field} />
-                      </FormControl>
-                      <FormMessage />
+                        <FormLabel>One-Time Password</FormLabel>
+                        <FormControl>
+                            <div className="flex justify-between gap-2">
+                                {otp.map((data, index) => (
+                                    <Input
+                                        key={index}
+                                        type="text"
+                                        maxLength={1}
+                                        value={data}
+                                        onChange={e => handleOtpChange(e.target, index)}
+                                        onKeyDown={e => handleKeyDown(e, index)}
+                                        ref={el => (inputRefs.current[index] = el)}
+                                        className="w-10 h-10 text-center text-lg"
+                                    />
+                                ))}
+                            </div>
+                        </FormControl>
+                        {/* Hidden input to hold the combined OTP for react-hook-form */}
+                        <input type="hidden" {...field} />
+                        <FormMessage />
                     </FormItem>
                   )}
                 />
