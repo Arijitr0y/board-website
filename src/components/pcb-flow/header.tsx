@@ -2,21 +2,38 @@
 "use client";
 
 import Link from "next/link";
-import { CircuitBoard, ShoppingCart, ChevronDown } from "lucide-react";
+import { CircuitBoard, ShoppingCart, ChevronDown, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { LoadingLink } from "@/context/loading-context";
+import { createClient } from '@/lib/supabase/client'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+
 
 export function Header() {
   const cart = useCart();
   const items = cart ? cart.items : [];
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient()
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser()
+      setUser(data.user)
+      setIsLoading(false)
+    }
+    checkUser()
+  }, [])
   
   return (
     <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
@@ -80,6 +97,40 @@ export function Header() {
                     <span className="sr-only">Cart</span>
                 </LoadingLink>
             </Button>
+             {isLoading ? (
+                <div className="h-8 w-20 animate-pulse rounded-md bg-muted" />
+            ) : user ? (
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={`https://api.dicebear.com/7.x/identicon/svg?seed=${user.email}`} alt="user avatar" />
+                                <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                             <Link href="/account">My Account</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/order-history">Order History</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <form action="/auth/signout" method="post">
+                            <button type="submit" className="w-full text-left">
+                                <DropdownMenuItem>
+                                    Sign Out
+                                </DropdownMenuItem>
+                            </button>
+                        </form>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ) : (
+                <Button asChild>
+                    <Link href="/login">Login</Link>
+                </Button>
+            )}
           </div>
         </div>
       </div>
