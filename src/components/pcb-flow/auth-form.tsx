@@ -17,27 +17,19 @@ import { useToggle } from '@/hooks/use-toggle'
 import { supabase } from '@/lib/supabase-client'
 import { cn } from '@/lib/utils'
 
-const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(1, { message: 'Password is required.' }),
-});
-
-const signupSchema = z.object({
-  firstName: z.string().min(1, { message: 'First name is required.' }),
-  lastName: z.string().min(1, { message: 'Last name is required.' }),
-  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters long.' }),
-});
-
-const otpSchema = z.object({
-    otp: z.string().length(6, { message: 'Please enter the 6-digit code.' }),
+const authSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address.' }).optional(),
+  password: z.string().min(1, { message: 'Password is required.' }).optional(),
+  firstName: z.string().min(1, { message: 'First name is required.' }).optional(),
+  lastName: z.string().min(1, { message: 'Last name is required.' }).optional(),
+  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }).optional(),
+  otp: z.string().length(6, { message: 'Please enter the 6-digit code.' }).optional(),
+}).superRefine((data, ctx) => {
+    // This is a placeholder for form-level validation if needed later
 });
 
 
-// Create a combined schema for type inference that includes all possible fields.
-const combinedSchema = loginSchema.merge(signupSchema).merge(otpSchema);
-type AuthFormValues = z.infer<typeof combinedSchema>;
+type AuthFormValues = z.infer<typeof authSchema>;
 
 
 export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'signup' }) {
@@ -53,18 +45,17 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const form = useForm<AuthFormValues>({
-    resolver: zodResolver(otpSchema),
+    resolver: zodResolver(authSchema),
     defaultValues: { 
-      otp: '',
-      email: '',
-      password: '',
-      firstName: '',
-      lastName: '',
-      phone: '',
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        phone: '',
+        otp: '',
     },
   });
   
-  const currentSchema = formType === 'login' ? loginSchema : formType === 'signup' ? signupSchema : otpSchema;
 
   useEffect(() => {
     if (formType === 'otp' && inputRefs.current[0]) {
@@ -73,8 +64,16 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   }, [formType]);
   
   useEffect(() => {
-    // When the form type changes, update the resolver and reset form values.
-    form.reset();
+    // When the form type changes, reset form values.
+    form.reset({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        phone: '',
+        otp: '',
+    });
+    setOtp(new Array(6).fill(""));
   }, [formType, form]);
 
   useEffect(() => {
@@ -123,13 +122,13 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     setIsSubmitting(true)
     try {
         if (formType === 'login') {
-            const { email, password } = values as z.infer<typeof loginSchema>;
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            const { email, password } = values;
+            const { error } = await supabase.auth.signInWithPassword({ email: email!, password: password! });
             if (error) throw error;
             toast({ title: 'Login Successful', description: "Welcome back!" })
             window.location.href = '/account/dashboard';
         } else if (formType === 'signup') {
-            const { email, password } = values as z.infer<typeof signupSchema>;
+            const { email, password } = values;
             setSignupData(values); 
             
             const { data: { user } } = await supabase.auth.getUser()
@@ -138,7 +137,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                 await supabase.auth.signOut();
             }
 
-            const { error } = await supabase.auth.signUp({ email, password });
+            const { error } = await supabase.auth.signUp({ email: email!, password: password! });
             if (error) throw error;
             
             toast({ title: 'OTP Sent', description: 'Please check your email for the verification code.' });
@@ -146,7 +145,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
             setIsTimerActive(true);
             setOtpTimer(180);
         } else if (formType === 'otp') {
-            const { otp } = values as z.infer<typeof otpSchema>;
+            const currentOtp = otp.join('');
             if (!signupData || !signupData.email || !signupData.password) {
                 throw new Error('Signup data is missing. Please try signing up again.');
             }
@@ -155,7 +154,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
 
             const { data, error: verifyError } = await supabase.auth.verifyOtp({
                 email,
-                token: otp,
+                token: currentOtp,
                 type: 'email',
             });
             
@@ -343,7 +342,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
               <FormField
                 control={form.control}
                 name="otp"
-                render={({ field }) => (
+                render={() => (
                    <FormItem>
                     <FormLabel>One-Time Password</FormLabel>
                     <FormControl>
@@ -357,7 +356,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                                 value={digit}
                                 onChange={(e) => handleOtpChange(e, index)}
                                 onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                                onPaste={(e) => handleOtpPaste(e)}
+                                onPaste={handleOtpPaste}
                                 className="w-12 h-14 text-center text-2xl font-semibold border-2 rounded-md transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-ring"
                             />
                         ))}
