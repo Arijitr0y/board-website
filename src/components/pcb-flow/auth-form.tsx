@@ -65,15 +65,15 @@ type AuthFormValues = z.infer<typeof authSchema>;
 
 
 export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'signup' }) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formType, setFormType] = useState<'login' | 'signup' | 'otp'>(initialView)
-  const [signupData, setSignupData] = useState<AuthFormValues | null>(null);
+  const [isSubmitting, setIsSubmitting = useState(false)
+  const [formType, setFormType = useState<'login' | 'signup' | 'otp'>(initialView)
+  const [signupData, setSignupData = useState<AuthFormValues | null>(null);
   const router = useRouter()
-  const [showPassword, toggleShowPassword] = useToggle(false);
-  const [otpTimer, setOtpTimer] = useState(180); // 3 minutes in seconds
-  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [showPassword, toggleShowPassword = useToggle(false);
+  const [otpTimer, setOtpTimer = useState(180); // 3 minutes in seconds
+  const [isTimerActive, setIsTimerActive = useState(false);
   
-  const [otp, setOtp] = useState<string[]>(new Array(6).fill(""));
+  const [otp, setOtp = useState<string[]>(new Array(6).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const form = useForm<AuthFormValues>({
@@ -146,21 +146,20 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
 
 
   const handleAuthAction = async (values: AuthFormValues) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-        if (formType === 'login') {
+        if (values.formType === 'login') {
             const { email, password } = values;
             const { error } = await supabase.auth.signInWithPassword({ email: email!, password: password! });
             if (error) throw error;
             toast({ title: 'Login Successful', description: "Welcome back!" })
             window.location.href = '/account/dashboard';
-        } else if (formType === 'signup') {
+        } else if (values.formType === 'signup') {
             const { email, password } = values;
             setSignupData(values); 
             
             const { data: { user } } = await supabase.auth.getUser()
             if (user) {
-                // If a user is already logged in, sign them out before signing up a new one.
                 await supabase.auth.signOut();
             }
 
@@ -171,7 +170,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
             setFormType('otp');
             setIsTimerActive(true);
             setOtpTimer(180);
-        } else if (formType === 'otp') {
+        } else if (values.formType === 'otp') {
             const currentOtp = otp.join('');
             if (!signupData || !signupData.email || !signupData.password) {
                 throw new Error('Signup data is missing. Please try signing up again.');
@@ -240,7 +239,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, "");
     if (pastedData) {
-        const newOtp = [...otp];
+        const newOtp = new Array(6).fill('');
         for (let i = 0; i < pastedData.length; i++) {
             if (i < 6) {
                 newOtp[i] = pastedData[i];
@@ -426,3 +425,5 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     </Card>
   )
 }
+
+    
