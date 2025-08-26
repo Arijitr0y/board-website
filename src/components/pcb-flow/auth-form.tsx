@@ -112,18 +112,17 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         router.refresh()
       }
     } else if (formType === 'signup') {
-        const { email } = values as z.infer<typeof signupSchema>;
+        const { email, password } = values as z.infer<typeof signupSchema>;
         setSignupData(values); // Store signup data to use after OTP verification
         
-        const { error } = await supabase.auth.signInWithOtp({
-            email,
-            options: {
-              shouldCreateUser: true,
-            },
+        // Sign up the user first to create the user record
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
         });
 
-        if (error) {
-            toast({ variant: 'destructive', title: 'Sign Up Failed', description: error.message });
+        if (signUpError) {
+          toast({ variant: 'destructive', title: 'Sign Up Failed', description: signUpError.message });
         } else {
             toast({ title: 'OTP Sent', description: 'Please check your email for the verification code.' });
             setFormType('otp');
@@ -150,18 +149,8 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
              toast({ variant: 'destructive', title: 'OTP Verification Failed', description: verifyError.message });
         } else if (verifyData.user) {
             setIsTimerActive(false);
-            // OTP is valid, now update the user with the rest of the data
-            const { error: updateError } = await supabase.auth.updateUser({
-                password: password,
-            });
-            
-            if (updateError) {
-                toast({ variant: 'destructive', title: 'Account Creation Failed', description: 'Could not set password.' });
-                 setIsSubmitting(false)
-                return;
-            }
 
-            // Now update the profiles table
+            // Now that OTP is verified, update the profiles table
             const { error: profileError } = await supabase
               .from('profiles')
               .update({
