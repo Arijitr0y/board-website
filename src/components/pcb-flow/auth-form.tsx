@@ -65,15 +65,15 @@ type AuthFormValues = z.infer<typeof authSchema>;
 
 
 export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'signup' }) {
-  const [isSubmitting, setIsSubmitting = useState(false)
-  const [formType, setFormType = useState<'login' | 'signup' | 'otp'>(initialView)
-  const [signupData, setSignupData = useState<AuthFormValues | null>(null);
-  const router = useRouter()
-  const [showPassword, toggleShowPassword = useToggle(false);
-  const [otpTimer, setOtpTimer = useState(180); // 3 minutes in seconds
-  const [isTimerActive, setIsTimerActive = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formType, setFormType] = useState<'login' | 'signup' | 'otp'>(initialView);
+  const [signupData, setSignupData] = useState<AuthFormValues | null>(null);
+  const router = useRouter();
+  const [showPassword, toggleShowPassword] = useToggle(false);
+  const [otpTimer, setOtpTimer] = useState(180); // 3 minutes in seconds
+  const [isTimerActive, setIsTimerActive] = useState(false);
   
-  const [otp, setOtp = useState<string[]>(new Array(6).fill(""));
+  const [otp, setOtp] = useState<string[]>(new Array(6).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const form = useForm<AuthFormValues>({
@@ -147,6 +147,11 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
 
   const handleAuthAction = async (values: AuthFormValues) => {
     setIsSubmitting(true);
+    if (values.formType === 'signup') {
+        // This is a special case to set signup data before calling the async part
+        setSignupData(values);
+    }
+
     try {
         if (values.formType === 'login') {
             const { email, password } = values;
@@ -156,7 +161,6 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
             window.location.href = '/account/dashboard';
         } else if (values.formType === 'signup') {
             const { email, password } = values;
-            setSignupData(values); 
             
             const { data: { user } } = await supabase.auth.getUser()
             if (user) {
@@ -378,7 +382,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                                 value={digit}
                                 onChange={(e) => handleOtpChange(e, index)}
                                 onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                                onPaste={handleOtpPaste}
+                                onPaste={(e) => handleOtpPaste(e)}
                                 className="w-12 h-14 text-center text-2xl font-semibold border-2 rounded-md transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-ring"
                             />
                         ))}
@@ -425,5 +429,3 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     </Card>
   )
 }
-
-    
