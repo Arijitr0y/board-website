@@ -1,11 +1,10 @@
-
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
-      headers: req.headers,
+      headers: request.headers,
     },
   })
 
@@ -15,17 +14,18 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         get(name: string) {
-          return req.cookies.get(name)?.value
+          return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          req.cookies.set({
+          // If the cookie is set, update the request's cookies.
+          request.cookies.set({
             name,
             value,
             ...options,
           })
           response = NextResponse.next({
             request: {
-              headers: req.headers,
+              headers: request.headers,
             },
           })
           response.cookies.set({
@@ -35,14 +35,15 @@ export async function middleware(req: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
-          req.cookies.set({
+          // If the cookie is removed, update the request's cookies.
+          request.cookies.set({
             name,
             value: '',
             ...options,
           })
           response = NextResponse.next({
             request: {
-              headers: req.headers,
+              headers: request.headers,
             },
           })
           response.cookies.set({
@@ -55,7 +56,8 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  await supabase.auth.getSession()
+  // This will refresh the session cookie if it's expired.
+  await supabase.auth.getUser()
 
   return response
 }
