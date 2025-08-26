@@ -86,7 +86,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
       setIsSubmitting(true);
       const { error } = await supabase.auth.signInWithOtp({
         email: signupData.email,
-        options: { shouldCreateUser: true },
+        options: { shouldCreateUser: false }, // Should not create a user again
       });
       if (error) {
         toast({ variant: 'destructive', title: 'Error Resending OTP', description: error.message });
@@ -153,15 +153,26 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
             // OTP is valid, now update the user with the rest of the data
             const { error: updateError } = await supabase.auth.updateUser({
                 password: password,
-                data: {
-                    first_name: firstName,
-                    last_name: lastName,
-                    phone: phone,
-                },
             });
             
             if (updateError) {
-                toast({ variant: 'destructive', title: 'Account Creation Failed', description: updateError.message });
+                toast({ variant: 'destructive', title: 'Account Creation Failed', description: 'Could not set password.' });
+                 setIsSubmitting(false)
+                return;
+            }
+
+            // Now update the profiles table
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .update({
+                full_name: `${firstName} ${lastName}`,
+                phone: phone,
+                email: email,
+              })
+              .eq('id', verifyData.user.id);
+            
+            if (profileError) {
+                toast({ variant: 'destructive', title: 'Account Creation Failed', description: `Could not save profile: ${profileError.message}` });
             } else {
                 toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
                 router.push('/account/dashboard');
