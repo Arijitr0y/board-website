@@ -28,6 +28,14 @@ type Order = {
     created_at: string;
     status: string;
 }
+type Address = {
+    name: string;
+    line1: string;
+    city: string;
+    zip: string;
+    country: string;
+};
+
 
 const SidebarNavItem = ({
   icon,
@@ -444,7 +452,7 @@ const ProfileView = () => {
 };
 
 
-const AddressDisplay = ({ title, address, onEditClick }: { title: string; address?: { name: string; line1: string; city: string; zip: string; country: string; }; onEditClick: () => void; }) => (
+const AddressDisplay = ({ title, address, onEditClick }: { title: string; address?: Address; onEditClick: () => void; }) => (
     <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
             <h3 className="font-semibold">{title}</h3>
@@ -454,7 +462,7 @@ const AddressDisplay = ({ title, address, onEditClick }: { title: string; addres
             </Button>
         </CardHeader>
         <CardContent>
-            {address ? (
+            {address && address.name ? (
                 <div className="text-sm text-muted-foreground">
                     <p className="font-medium text-foreground">{address.name}</p>
                     <p>{address.line1}</p>
@@ -469,13 +477,51 @@ const AddressDisplay = ({ title, address, onEditClick }: { title: string; addres
 )
 
 const AddressesView = () => {
-    const deliveryAddress = {
-        name: "John Doe",
-        line1: "Embassy Tech Village, Outer Ring Road",
-        city: "Bengaluru",
-        zip: "560103",
-        country: "India"
-    };
+    const supabase = createClientComponentClient();
+    const [loading, setLoading] = useState(true);
+    const [deliveryAddress, setDeliveryAddress] = useState<Address | undefined>(undefined);
+    const [billingAddress, setBillingAddress] = useState<Address | undefined>(undefined);
+
+    useEffect(() => {
+        const fetchAddresses = async () => {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('delivery_address, billing_address')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) {
+                    console.warn(error);
+                } else if (data) {
+                    setDeliveryAddress(data.delivery_address as Address);
+                    setBillingAddress(data.billing_address as Address);
+                }
+            } else {
+                 // Mock data for iframe preview
+                 setDeliveryAddress({ name: "Arijit Roy", line1: "Embassy Tech Village", city: "Bengaluru", zip: "560103", country: "India" });
+                 setBillingAddress({ name: "Arijit Roy", line1: "Embassy Tech Village", city: "Bengaluru", zip: "560103", country: "India" });
+            }
+            setLoading(false);
+        };
+        fetchAddresses();
+    }, [supabase]);
+
+    if (loading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Addresses</CardTitle>
+                    <CardDescription>Manage your shipping and billing addresses.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center items-center h-48">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </CardContent>
+            </Card>
+        )
+    }
 
     return (
         <Card>
@@ -491,7 +537,7 @@ const AddressesView = () => {
                 />
                 <AddressDisplay
                     title="Billing Address"
-                    address={deliveryAddress} // Using same for now
+                    address={billingAddress}
                     onEditClick={() => { /* Handle edit */ }}
                 />
             </CardContent>
