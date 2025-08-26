@@ -29,19 +29,25 @@ const signupSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters long.' }),
 });
 
+const otpSchema = z.object({
+    otp: z.string().min(6, { message: 'Please enter the 6-digit code.' }),
+});
+
+
 // Create a combined schema for type inference that includes all possible fields.
-const combinedSchema = loginSchema.merge(signupSchema.partial());
+const combinedSchema = loginSchema.merge(signupSchema).merge(otpSchema).partial();
 type AuthFormValues = z.infer<typeof combinedSchema>;
 
 
 export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'signup' }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formType, setFormType] = useState<'login' | 'signup'>(initialView)
+  const [formType, setFormType] = useState<'login' | 'signup' | 'otp'>(initialView)
+  const [signupData, setSignupData] = useState<AuthFormValues | null>(null);
   const supabase = createClientComponentClient()
   const router = useRouter()
   const [showPassword, toggleShowPassword] = useToggle(false);
 
-  const currentSchema = formType === 'login' ? loginSchema : signupSchema;
+  const currentSchema = formType === 'login' ? loginSchema : formType === 'signup' ? signupSchema : otpSchema;
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(currentSchema),
@@ -51,6 +57,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
       firstName: '',
       lastName: '',
       phone: '',
+      otp: '',
     },
   });
   
@@ -72,25 +79,60 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         router.push('/account/dashboard')
         router.refresh()
       }
-    } else {
-      const { email, password, firstName, lastName, phone } = values as z.infer<typeof signupSchema>;
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            phone,
-          },
-          emailRedirectTo: `${location.origin}/auth/callback`,
-        },
-      })
-      if (error) {
-        toast({ variant: 'destructive', title: 'Sign Up Failed', description: error.message })
-      } else {
-        toast({ title: 'Confirmation Email Sent', description: 'Please check your email to complete the sign up process.' })
-      }
+    } else if (formType === 'signup') {
+        const { email } = values as z.infer<typeof signupSchema>;
+        setSignupData(values); // Store signup data to use after OTP verification
+        
+        const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              shouldCreateUser: true,
+            },
+        });
+
+        if (error) {
+            toast({ variant: 'destructive', title: 'Sign Up Failed', description: error.message });
+        } else {
+            toast({ title: 'OTP Sent', description: 'Please check your email for the verification code.' });
+            setFormType('otp');
+        }
+    } else if (formType === 'otp') {
+        const { otp } = values as z.infer<typeof otpSchema>;
+        if (!signupData || !signupData.email || !signupData.password) {
+            toast({ variant: 'destructive', title: 'An Error Occurred', description: 'Signup data is missing. Please try again.' });
+            setFormType('signup');
+            return;
+        }
+
+        const { email, password, firstName, lastName, phone } = signupData;
+
+        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+            email,
+            token: otp,
+            type: 'email',
+        });
+        
+        if (verifyError) {
+             toast({ variant: 'destructive', title: 'OTP Verification Failed', description: verifyError.message });
+        } else if (verifyData.user) {
+            // OTP is valid, now update the user with the rest of the data
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: password,
+                data: {
+                    first_name: firstName,
+                    last_name: lastName,
+                    phone: phone,
+                },
+            });
+            
+            if (updateError) {
+                toast({ variant: 'destructive', title: 'Account Creation Failed', description: updateError.message });
+            } else {
+                toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
+                router.push('/account/dashboard');
+                router.refresh();
+            }
+        }
     }
     setIsSubmitting(false)
   }
@@ -98,11 +140,15 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
-        <CardTitle>{formType === 'login' ? 'Login' : 'Create an Account'}</CardTitle>
+        <CardTitle>
+            {formType === 'login' && 'Login'}
+            {formType === 'signup' && 'Create an Account'}
+            {formType === 'otp' && 'Enter Verification Code'}
+        </CardTitle>
         <CardDescription>
-          {formType === 'login' 
-            ? 'Enter your credentials to access your account.' 
-            : 'Enter your details to get started.'}
+          {formType === 'login' && 'Enter your credentials to access your account.'}
+          {formType === 'signup' && 'Enter your details to get started.'}
+          {formType === 'otp' && `A 6-digit code was sent to ${signupData?.email}.`}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -153,54 +199,84 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                 />
               </>
             )}
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="you@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <div className="relative">
-                    <FormControl>
-                      <Input 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="••••••••" 
-                        {...field}
-                        className="pr-10"
-                       />
-                    </FormControl>
-                    <button 
-                        type="button" 
-                        onClick={toggleShowPassword}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                    >
-                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+            {formType !== 'otp' && (
+                <>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="you@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <div className="relative">
+                        <FormControl>
+                          <Input 
+                            type={showPassword ? "text" : "password"} 
+                            placeholder="••••••••" 
+                            {...field}
+                            className="pr-10"
+                           />
+                        </FormControl>
+                        <button 
+                            type="button" 
+                            onClick={toggleShowPassword}
+                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                        >
+                           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                </>
+            )}
+            
+            {formType === 'otp' && (
+                 <FormField
+                  control={form.control}
+                  name="otp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>One-Time Password</FormLabel>
+                      <FormControl>
+                        <Input placeholder="123456" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            )}
+
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {formType === 'login' ? 'Log In' : 'Sign Up'}
+              {formType === 'login' && 'Log In'}
+              {formType === 'signup' && 'Sign Up'}
+              {formType === 'otp' && 'Verify & Create Account'}
             </Button>
           </form>
         </Form>
       </CardContent>
-      <CardFooter>
+       <CardFooter className="flex-col items-start gap-2">
+         {formType === 'otp' && (
+            <p className="text-sm text-muted-foreground">
+                Didn't receive a code?{' '}
+                <Button variant="link" size="sm" className="p-0 h-auto" onClick={() => handleAuthAction(signupData!)}>Resend OTP</Button>
+            </p>
+         )}
         <p className="text-sm text-muted-foreground text-center w-full">
           {formType === 'login' ? "Don't have an account?" : "Already have an account?"}
           <Button variant="link" onClick={() => setFormType(formType === 'login' ? 'signup' : 'login')}>
