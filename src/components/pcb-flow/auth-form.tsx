@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -29,9 +29,10 @@ const signupSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters long.' }),
 });
 
-const formSchema = z.union([loginSchema, signupSchema]);
+// Create a combined schema for type inference that includes all possible fields.
+const combinedSchema = loginSchema.merge(signupSchema.partial());
+type AuthFormValues = z.infer<typeof combinedSchema>;
 
-type AuthFormValues = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
 
 export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'signup' }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -47,18 +48,16 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     defaultValues: {
       email: '',
       password: '',
-      ...(formType === 'signup' && { firstName: '', lastName: '', phone: '' }),
+      firstName: '',
+      lastName: '',
+      phone: '',
     },
   });
-
-  // Reset form when type changes
-  useState(() => {
-    form.reset({
-        email: '',
-        password: '',
-        ...(formType === 'signup' ? { firstName: '', lastName: '', phone: '' } : {}),
-    });
-  });
+  
+  useEffect(() => {
+    // When the form type changes, update the resolver and reset form values.
+    form.reset();
+  }, [formType, form]);
 
 
   const handleAuthAction = async (values: AuthFormValues) => {
