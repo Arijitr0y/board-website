@@ -92,7 +92,7 @@ const MessagesView = () => {
             relatedTo: 'DFM-2024-001',
             lastMessage: 'Sounds good, please proceed.',
             time: 'Jul 21, 2024, 2:15 PM',
-            isUnread: false,
+            isUnread: true,
             messages: [
                 { sender: 'M', text: 'Hi John, we noticed a potential issue with the trace clearances on your "IoT Weather Station" design. We recommend increasing the spacing to avoid shorts during fabrication. Do you approve this change?', time: 'Jul 20, 2024, 11:30 AM' },
                 { sender: 'U', text: 'Thanks for catching that. Yes, please go ahead and make the recommended adjustment.', time: 'Jul 21, 2024, 9:45 AM' },
@@ -106,7 +106,7 @@ const MessagesView = () => {
             relatedTo: 'PCB-2024-002',
             lastMessage: 'Great, thanks for the update!',
             time: 'Jul 18, 2024, 5:30 PM',
-            isUnread: true,
+            isUnread: false,
             messages: [
                  { sender: 'M', text: 'Your order PCB-2024-002 for the "Audio Amplifier Board" has been shipped. You can find the tracking details on the order page.', time: 'Jul 18, 2024, 5:30 PM' },
                  { sender: 'U', text: 'Great, thanks for the update!', time: 'Jul 18, 2024, 5:32 PM' },
@@ -370,6 +370,8 @@ const ProfileView = () => {
                         avatarUrl: data.avatar_url || ''
                     });
                 }
+            } else {
+                setProfileData(prev => ({...prev, email: 'arijit1roy@gmail.com'}));
             }
             setLoading(false);
         };
@@ -405,7 +407,7 @@ const ProfileView = () => {
                 <div className="flex items-center gap-6 pt-2">
                     <Avatar className="h-24 w-24">
                         <AvatarImage src={profileData.avatarUrl || `https://i.pravatar.cc/150?u=${profileData.email}`} alt="User profile picture" />
-                        <AvatarFallback>{profileData.fullName?.[0] || 'U'}</AvatarFallback>
+                        <AvatarFallback>{profileData.fullName?.[0] || 'A'}</AvatarFallback>
                     </Avatar>
                     <div className="space-y-2">
                         <h3 className="font-medium">Profile Picture</h3>
