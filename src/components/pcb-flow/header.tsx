@@ -16,14 +16,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils";
 import { LoadingLink } from "@/context/loading-context";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-client";
 
 export function Header() {
   const cart = useCart();
   const items = cart ? cart.items : [];
   const [user, setUser] = useState<any>(null);
-  const supabase = createClientComponentClient();
   const router = useRouter();
 
   useEffect(() => {
@@ -32,7 +31,7 @@ export function Header() {
       setUser(user);
     };
     getUser();
-  }, [supabase]);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

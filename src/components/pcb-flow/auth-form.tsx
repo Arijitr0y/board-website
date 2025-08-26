@@ -1,9 +1,7 @@
 
-
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from '@/hooks/use-toast'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useToggle } from '@/hooks/use-toggle'
+import { supabase } from '@/lib/supabase-client'
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -44,7 +43,6 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formType, setFormType] = useState<'login' | 'signup' | 'otp'>(initialView)
   const [signupData, setSignupData] = useState<AuthFormValues | null>(null);
-  const supabase = createClientComponentClient()
   const router = useRouter()
   const [showPassword, toggleShowPassword] = useToggle(false);
   const [otpTimer, setOtpTimer] = useState(180); // 3 minutes in seconds

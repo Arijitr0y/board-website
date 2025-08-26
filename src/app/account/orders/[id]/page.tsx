@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Check, Download, FileText, Package, Rocket, Truck, User, Wrench, Clock, Search, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabase-client";
 
 type OrderDetails = {
     id: string;
@@ -80,7 +80,6 @@ const OrderHistoryCard = ({ history }: { history: { status: string; date: string
 );
 
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
-    const supabase = createClientComponentClient();
     const router = useRouter();
     const [order, setOrder] = useState<OrderDetails | null>(null);
     const [loading, setLoading] = useState(true);
@@ -104,24 +103,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 } else {
                     setOrder(data as OrderDetails);
                 }
-            } else {
-                // Mock data for display in iframe without login
-                const mockOrders: Record<string, any> = {
-                    'PCB-2024-003': { id: 'PCB-2024-003', project_name: 'IoT Weather Station', gerber_name: 'weather-station-v2.zip', created_at: '2024-07-20', status: 'In Fabrication', total: 8500.00, specs: { layers: '2', size: '80x60mm', material: 'FR-4', thickness: '1.6mm', quantity: 15, maskColor: 'Green', finish: 'HASL', }, shipping_address: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India', history: [ { status: 'In Fabrication', date: '2024-07-21 09:00 AM', description: 'PCB fabrication has started.' }, { status: 'PCB in Review', date: '2024-07-20 11:00 AM', description: 'Your design files are being reviewed.' }, { status: 'Order Placed', date: '2024-07-20 10:30 AM', description: 'Your order has been successfully placed.' }, ]},
-                    'PCB-2024-002': { id: 'PCB-2024-002', project_name: 'Audio Amplifier Board', gerber_name: 'amp-board-rev-b.zip', created_at: '2024-07-15', status: 'Shipped', total: 12350.00, specs: { layers: '4', size: '120x100mm', material: 'FR-4', thickness: '1.6mm', quantity: 10, maskColor: 'Black', finish: 'ENIG', }, shipping_address: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India', history: [ { status: 'Shipped', date: '2024-07-18 05:30 PM', description: 'Your order has been shipped via DTDC.' }, { status: 'In Fabrication', date: '2024-07-16 11:00 AM', description: 'PCB fabrication has completed.' }, { status: 'PCB in Review', date: '2024-07-15 03:00 PM', description: 'Your design files have been approved.' }, { status: 'Order Placed', date: '2024-07-15 02:00 PM', description: 'Your order has been successfully placed.' }, ]},
-                    'PCB-2024-001': { id: 'PCB-2024-001', project_name: 'LED Matrix Display', gerber_name: 'led-display-controller.zip', created_at: '2024-06-28', status: 'Delivered', total: 5200.00, specs: { layers: '2', size: '50x50mm', material: 'FR-4', thickness: '1.2mm', quantity: 20, maskColor: 'Red', finish: 'HASL', }, shipping_address: 'John Doe, Embassy Tech Village, Outer Ring Road, Bengaluru - 560103, India', history: [ { status: 'Delivered', date: '2024-07-01 12:45 PM', description: 'Package delivered.' }, { status: 'Shipped', date: '2024-06-29 08:00 AM', description: 'Your order has been shipped.' }, { status: 'In Fabrication', date: '2024-06-28 02:00 PM', description: 'PCB fabrication has completed.' }, { status: 'PCB in Review', date: '2024-06-28 10:00 AM', description: 'Your design files have been approved.' }, { status: 'Order Placed', date: '2024-06-28 09:30 AM', description: 'Your order has been placed.' }, ]},
-                };
-                const mockOrder = mockOrders[params.id];
-                if (mockOrder) {
-                    setOrder(mockOrder);
-                } else {
-                    notFound();
-                }
             }
             setLoading(false);
         };
         fetchOrderDetails();
-    }, [supabase, router, params.id]);
+    }, [router, params.id]);
 
     useEffect(() => {
         // This check is temporarily disabled for testing in the iframe preview.
@@ -132,7 +118,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         //   }
         // }
         // checkUser()
-    }, [supabase, router]);
+    }, [router]);
 
     if (loading) {
         return (

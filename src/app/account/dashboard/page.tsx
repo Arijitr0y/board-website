@@ -18,7 +18,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast";
 import { deleteUserAccount } from "../actions";
+import { supabase } from "@/lib/supabase-client";
 
 type View = 'messages' | 'orders' | 'profile' | 'addresses' | 'settings' | 'payments';
 type Order = {
@@ -221,7 +221,6 @@ const MessagesView = () => {
 
 const OrdersView = () => {
     const router = useRouter();
-    const supabase = createClientComponentClient();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -242,19 +241,11 @@ const OrdersView = () => {
                 } else if (data) {
                     setOrders(data);
                 }
-            } else {
-                // This block can be removed once login is fully functional
-                // Mock data for display in iframe without login
-                setOrders([
-                    { id: 'PCB-2024-003', project_name: 'IoT Weather Station', gerber_name: 'weather-station-v2.zip', created_at: '2024-07-20', status: 'In Fabrication' },
-                    { id: 'PCB-2024-002', project_name: 'Audio Amplifier Board', gerber_name: 'amp-board-rev-b.zip', created_at: '2024-07-15', status: 'Shipped' },
-                    { id: 'PCB-2024-001', project_name: 'LED Matrix Display', gerber_name: 'led-display-controller.zip', created_at: '2024-06-28', status: 'Delivered' },
-                ]);
             }
             setLoading(false);
         };
         fetchOrders();
-    }, [supabase]);
+    }, []);
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -350,7 +341,6 @@ const OrdersView = () => {
 };
 
 const ProfileView = () => {
-    const supabase = createClientComponentClient();
     const [loading, setLoading] = useState(true);
     const [profileData, setProfileData] = useState({
         fullName: '',
@@ -380,19 +370,11 @@ const ProfileView = () => {
                         avatarUrl: data.avatar_url || ''
                     });
                 }
-            } else {
-                 // Mock data for iframe preview
-                 setProfileData({
-                    fullName: 'Arijit Roy',
-                    email: 'arijit1roy@gmail.com',
-                    phone: '123-456-7890',
-                    avatarUrl: ''
-                });
             }
             setLoading(false);
         };
         fetchProfile();
-    }, [supabase]);
+    }, []);
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -490,7 +472,6 @@ const AddressDisplay = ({ title, address, onEditClick }: { title: string; addres
 )
 
 const AddressesView = () => {
-    const supabase = createClientComponentClient();
     const [loading, setLoading] = useState(true);
     const [deliveryAddress, setDeliveryAddress] = useState<Address | undefined>(undefined);
     const [billingAddress, setBillingAddress] = useState<Address | undefined>(undefined);
@@ -512,15 +493,11 @@ const AddressesView = () => {
                     setDeliveryAddress(data.delivery_address as Address);
                     setBillingAddress(data.billing_address as Address);
                 }
-            } else {
-                 // Mock data for iframe preview
-                 setDeliveryAddress({ name: "Arijit Roy", line1: "Embassy Tech Village", city: "Bengaluru", zip: "560103", country: "India" });
-                 setBillingAddress({ name: "Arijit Roy", line1: "Embassy Tech Village", city: "Bengaluru", zip: "560103", country: "India" });
             }
             setLoading(false);
         };
         fetchAddresses();
-    }, [supabase]);
+    }, []);
 
     if (loading) {
         return (
@@ -743,7 +720,6 @@ const SettingsView = () => {
 
 export default function AccountDashboardPage() {
   const [activeView, setActiveView] = useState<View>('messages');
-  const supabase = createClientComponentClient()
   const router = useRouter()
 
   useEffect(() => {
@@ -755,7 +731,7 @@ export default function AccountDashboardPage() {
     //   }
     // }
     // checkUser()
-  }, [supabase, router])
+  }, [router])
 
 
   const renderContent = () => {
