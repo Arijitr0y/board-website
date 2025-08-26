@@ -78,7 +78,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(authSchema),
-    defaultValues: { 
+    defaultValues: {
         email: '',
         password: '',
         firstName: '',
@@ -91,7 +91,10 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   
   useEffect(() => {
     form.setValue('formType', formType);
-  }, [formType, form]);
+    if(formType !== 'otp' && signupData) {
+        setSignupData(null);
+    }
+  }, [formType, form, signupData]);
 
   useEffect(() => {
     if (formType === 'otp' && inputRefs.current[0]) {
@@ -99,21 +102,6 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     }
   }, [formType]);
   
-  useEffect(() => {
-    // When the form type changes, reset form values but maintain the formType.
-    const currentEmail = form.getValues('email');
-    form.reset({
-        email: formType === 'otp' ? currentEmail : '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        phone: '',
-        otp: '',
-        formType: formType,
-    });
-    setOtp(new Array(6).fill(""));
-  }, [formType, form]);
-
   useEffect(() => {
     if (otp.join("").length === 6) {
         form.setValue('otp', otp.join(""));
@@ -252,7 +240,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, "");
     if (pastedData) {
-        const newOtp = new Array(6).fill('');
+        const newOtp = [...otp];
         for (let i = 0; i < pastedData.length; i++) {
             if (i < 6) {
                 newOtp[i] = pastedData[i];
