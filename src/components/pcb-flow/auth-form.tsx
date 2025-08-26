@@ -15,6 +15,7 @@ import { toast } from '@/hooks/use-toast'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useToggle } from '@/hooks/use-toggle'
 import { supabase } from '@/lib/supabase-client'
+import { cn } from '@/lib/utils'
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -49,6 +50,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const [isTimerActive, setIsTimerActive] = useState(false);
   
   const formRef = useRef<HTMLFormElement>(null);
+  const [isOtpInputFocused, setIsOtpInputFocused] = useState(false);
 
 
   useEffect(() => {
@@ -304,35 +306,46 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                 control={form.control}
                 name="otp"
                 render={({ field }) => (
-                  <FormItem>
+                   <FormItem>
                     <FormLabel>One-Time Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        {/* Hidden real input */}
                         <Input
                           {...field}
-                          type="text" // Use text to allow seeing pasted content on some devices
+                          type="tel" 
                           maxLength={6}
                           onChange={handleOtpChange}
-                          className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-transparent caret-transparent p-0"
-                          style={{ letterSpacing: '2.3em', paddingLeft: '1rem', textAlign: 'left'}}
+                          onFocus={() => setIsOtpInputFocused(true)}
+                          onBlur={() => setIsOtpInputFocused(false)}
+                          className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-transparent caret-foreground p-0 text-center text-2xl tracking-[1.1em]"
+                          style={{ textIndent: '0.5em' }}
                           autoFocus
-                          onFocus={(e) => e.target.select()}
                         />
-                        {/* Visual display */}
-                        <div className="flex justify-between gap-2" aria-hidden="true">
-                          {Array.from({ length: 6 }).map((_, index) => (
-                            <div
-                              key={index}
-                              className="w-10 h-10 flex items-center justify-center text-lg border-2 rounded-md transition-all duration-200"
-                            >
-                              {field.value?.[index] || ''}
-                            </div>
-                          ))}
+                        <div
+                          className={cn(
+                            "flex justify-between gap-2 transition-all",
+                            isOtpInputFocused && "ring-2 ring-ring ring-offset-2 ring-offset-background rounded-md"
+                           )}
+                          aria-hidden="true"
+                        >
+                          {Array.from({ length: 6 }).map((_, index) => {
+                            const char = field.value?.[index]
+                            return (
+                                <div
+                                  key={index}
+                                  className={cn(
+                                    "w-12 h-14 flex items-center justify-center text-2xl font-semibold border-2 rounded-md transition-all duration-200",
+                                    char ? "border-primary" : "border-input"
+                                  )}
+                                >
+                                  {char || ''}
+                                </div>
+                              )
+                          })}
                         </div>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="pt-2" />
                   </FormItem>
                 )}
               />
