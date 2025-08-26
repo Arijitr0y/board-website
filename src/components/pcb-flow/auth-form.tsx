@@ -24,9 +24,11 @@ const authSchema = z.object({
   lastName: z.string().optional(),
   phone: z.string().optional(),
   otp: z.string().optional(),
-  formType: z.enum(['login', 'signup', 'otp']),
 }).superRefine((data, ctx) => {
-    if (data.formType === 'signup') {
+    // This refinement runs for every validation
+    const form = (ctx.customMap as any)?.formType;
+
+    if (form === 'signup') {
         if (!data.firstName || data.firstName.length < 1) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -49,7 +51,7 @@ const authSchema = z.object({
             });
         }
     }
-     if (data.formType === 'otp') {
+     if (form === 'otp') {
         if (!data.otp || data.otp.length !== 6) {
              ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -78,6 +80,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(authSchema),
+    context: { formType },
     defaultValues: {
         email: '',
         password: '',
@@ -85,16 +88,12 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         lastName: '',
         phone: '',
         otp: '',
-        formType: initialView,
     },
   });
-  
+   
   useEffect(() => {
-    form.setValue('formType', formType);
-    if(formType !== 'otp' && signupData) {
-        setSignupData(null);
-    }
-  }, [formType, form, signupData]);
+    form.trigger();
+  }, [formType, form]);
 
   useEffect(() => {
     if (formType === 'otp' && inputRefs.current[0]) {
@@ -106,7 +105,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     if (otp.join("").length === 6) {
         form.setValue('otp', otp.join(""));
         form.trigger('otp'); // Manually trigger validation for the OTP field
-        form.handleSubmit(handleAuthAction)();
+        form.handleSubmit(handleOtpVerification)();
     }
   }, [otp, form]);
 
@@ -134,6 +133,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         });
         if (error) throw error;
         toast({ title: 'New OTP Sent', description: 'Please check your email for the new code.' });
+        setOtp(new Array(6).fill(""));
         setOtpTimer(180); // Reset timer
         setIsTimerActive(true); // Restart timer
       } catch (error) {
@@ -144,80 +144,104 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
       }
   }
 
-
-  const handleAuthAction = async (values: AuthFormValues) => {
+  const handleLogin = async (values: AuthFormValues) => {
     setIsSubmitting(true);
-    if (values.formType === 'signup') {
-        // This is a special case to set signup data before calling the async part
-        setSignupData(values);
-    }
-
     try {
-        if (values.formType === 'login') {
-            const { email, password } = values;
-            const { error } = await supabase.auth.signInWithPassword({ email: email!, password: password! });
-            if (error) throw error;
-            toast({ title: 'Login Successful', description: "Welcome back!" })
-            window.location.href = '/account/dashboard';
-        } else if (values.formType === 'signup') {
-            const { email, password } = values;
-            
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
-                await supabase.auth.signOut();
-            }
-
-            const { error } = await supabase.auth.signUp({ email: email!, password: password! });
-            if (error) throw error;
-            
-            toast({ title: 'OTP Sent', description: 'Please check your email for the verification code.' });
-            setFormType('otp');
-            setIsTimerActive(true);
-            setOtpTimer(180);
-        } else if (values.formType === 'otp') {
-            const currentOtp = otp.join('');
-            if (!signupData || !signupData.email || !signupData.password) {
-                throw new Error('Signup data is missing. Please try signing up again.');
-            }
-
-            const { email, password, firstName, lastName, phone } = signupData;
-
-            const { data, error: verifyError } = await supabase.auth.verifyOtp({
-                email,
-                token: currentOtp,
-                type: 'email',
-            });
-            
-            if (verifyError) throw verifyError;
-            if (!data.user) throw new Error('OTP verification failed to return a user.');
-            
-            setIsTimerActive(false);
-
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .update({
-                full_name: `${firstName} ${lastName}`,
-                phone: phone,
-                email: email,
-              })
-              .eq('id', data.user.id);
-            
-            if (profileError) throw new Error(`Could not save profile: ${profileError.message}`);
-
-            toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
-            window.location.href = '/account/dashboard';
-        }
+        const { email, password } = values;
+        const { error } = await supabase.auth.signInWithPassword({ email: email!, password: password! });
+        if (error) throw error;
+        toast({ title: 'Login Successful', description: "Welcome back!" })
+        window.location.href = '/account/dashboard';
     } catch (error: any) {
-        console.error(`Error during ${formType}:`, error);
+        console.error('Error during login:', error);
         toast({
             variant: 'destructive',
-            title: `${formType.charAt(0).toUpperCase() + formType.slice(1)} Failed`,
+            title: 'Login Failed',
             description: error.message || 'An unknown error occurred.',
         });
     } finally {
         setIsSubmitting(false);
     }
-  }
+  };
+
+  const handleSignUp = async (values: AuthFormValues) => {
+    setIsSubmitting(true);
+    try {
+        // This is the key fix: ensure state is set before proceeding.
+        await new Promise<void>(resolve => {
+            setSignupData(values);
+            resolve();
+        });
+        
+        const { email, password } = values;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) await supabase.auth.signOut();
+        
+        const { error } = await supabase.auth.signUp({ email: email!, password: password! });
+        if (error) throw error;
+        
+        toast({ title: 'OTP Sent', description: 'Please check your email for the verification code.' });
+        setFormType('otp');
+        setIsTimerActive(true);
+        setOtpTimer(180);
+
+    } catch (error: any) {
+         console.error(`Error during signup:`, error);
+        toast({
+            variant: 'destructive',
+            title: `Sign Up Failed`,
+            description: error.message || 'An unknown error occurred.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  const handleOtpVerification = async (values: AuthFormValues) => {
+    setIsSubmitting(true);
+    try {
+        const currentOtp = otp.join('');
+        if (!signupData || !signupData.email || !signupData.password) {
+            throw new Error('Signup data is missing. Please try signing up again.');
+        }
+
+        const { email, password, firstName, lastName, phone } = signupData;
+
+        const { data, error: verifyError } = await supabase.auth.verifyOtp({
+            email,
+            token: currentOtp,
+            type: 'email',
+        });
+        
+        if (verifyError) throw verifyError;
+        if (!data.user) throw new Error('OTP verification failed to return a user.');
+        
+        setIsTimerActive(false);
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            full_name: `${firstName} ${lastName}`,
+            phone: phone,
+            email: email,
+          })
+          .eq('id', data.user.id);
+        
+        if (profileError) throw new Error(`Could not save profile: ${profileError.message}`);
+
+        toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
+        window.location.href = '/account/dashboard';
+    } catch (error: any) {
+        console.error('Error during OTP verification:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Verification Failed',
+            description: error.message || 'An unknown error occurred.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
   
   const handleOtpChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
     const { value } = e.target;
@@ -255,6 +279,15 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     }
   };
 
+ const onSubmit = (values: AuthFormValues) => {
+    if (formType === 'login') {
+      handleLogin(values);
+    } else if (formType === 'signup') {
+      handleSignUp(values);
+    } else if (formType === 'otp') {
+      handleOtpVerification(values);
+    }
+  };
 
   return (
     <Card className="w-full max-w-sm">
@@ -272,7 +305,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleAuthAction)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
              {formType === 'signup' && (
               <>
                  <div className="grid grid-cols-2 gap-4">
@@ -429,3 +462,5 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     </Card>
   )
 }
+
+    
