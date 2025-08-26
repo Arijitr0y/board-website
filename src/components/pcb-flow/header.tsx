@@ -2,11 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import { CircuitBoard, ShoppingCart, ChevronDown, User, FileText } from "lucide-react";
+import { CircuitBoard, ShoppingCart, ChevronDown, User, FileText, LogIn, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,10 +16,30 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils";
 import { LoadingLink } from "@/context/loading-context";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const cart = useCart();
   const items = cart ? cart.items : [];
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, [supabase]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push('/');
+    router.refresh();
+  };
   
   return (
     <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
@@ -83,25 +103,34 @@ export function Header() {
                     <span className="sr-only">Cart</span>
                 </LoadingLink>
             </Button>
-             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <Avatar>
-                            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                            <AvatarFallback>CN</AvatarFallback>
-                        </Avatar>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <LoadingLink href="/account/dashboard"><User className="mr-2 h-4 w-4" /> My Account</LoadingLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                   <DropdownMenuItem asChild>
-                    <LoadingLink href="/account/dashboard?view=payments"><FileText className="mr-2 h-4 w-4" /> Invoices</LoadingLink>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            {user ? (
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-full">
+                          <Avatar>
+                              <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
+                              <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                      </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <LoadingLink href="/account/dashboard"><User className="mr-2 h-4 w-4" /> My Account</LoadingLink>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <LoadingLink href="/account/dashboard?view=payments"><FileText className="mr-2 h-4 w-4" /> Invoices</LoadingLink>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" /> Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+            ) : (
+              <Button asChild>
+                <LoadingLink href="/login"><LogIn className="mr-2 h-4 w-4"/> Login</LoadingLink>
+              </Button>
+            )}
           </div>
         </div>
       </div>
