@@ -83,80 +83,66 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const handleResendOtp = async () => {
       if (!signupData?.email) return;
       setIsSubmitting(true);
-      const { error } = await supabase.auth.signInWithOtp({
-        email: signupData.email,
-        options: { shouldCreateUser: false }, // Should not create a user again
-      });
-      if (error) {
-        toast({ variant: 'destructive', title: 'Error Resending OTP', description: error.message });
-      } else {
+      try {
+        const { error } = await supabase.auth.signInWithOtp({
+          email: signupData.email,
+          options: { shouldCreateUser: false }, // Should not create a user again
+        });
+        if (error) throw error;
         toast({ title: 'New OTP Sent', description: 'Please check your email for the new code.' });
         setOtpTimer(180); // Reset timer
         setIsTimerActive(true); // Restart timer
+      } catch (error) {
+        console.error('Error resending OTP:', error);
+        toast({ variant: 'destructive', title: 'Error Resending OTP', description: (error as Error).message });
+      } finally {
+        setIsSubmitting(false);
       }
-      setIsSubmitting(false);
   }
 
 
   const handleAuthAction = async (values: AuthFormValues) => {
     setIsSubmitting(true)
-    if (formType === 'login') {
-      const { email, password } = values as z.infer<typeof loginSchema>;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast({ variant: 'destructive', title: 'Login Failed', description: error.message })
-      } else {
-        toast({ title: 'Login Successful', description: "Welcome back!" })
-        window.location.href = '/account/dashboard';
-      }
-    } else if (formType === 'signup') {
-        const { email, password } = values as z.infer<typeof signupSchema>;
-        setSignupData(values); // Store signup data to use after OTP verification
-        
-        // Sign up the user first to create the user record
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-        if (signUpError) {
-          toast({ variant: 'destructive', title: 'Sign Up Failed', description: signUpError.message });
-        } else {
+    try {
+        if (formType === 'login') {
+            const { email, password } = values as z.infer<typeof loginSchema>;
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            toast({ title: 'Login Successful', description: "Welcome back!" })
+            window.location.href = '/account/dashboard';
+        } else if (formType === 'signup') {
+            const { email, password } = values as z.infer<typeof signupSchema>;
+            setSignupData(values); 
+            
+            const { error } = await supabase.auth.signUp({ email, password });
+            if (error) throw error;
+            
             toast({ title: 'OTP Sent', description: 'Please check your email for the verification code.' });
             setFormType('otp');
             setIsTimerActive(true);
             setOtpTimer(180);
-        }
-    } else if (formType === 'otp') {
-        const { otp } = values as z.infer<typeof otpSchema>;
-        if (!signupData || !signupData.email || !signupData.password) {
-            toast({ variant: 'destructive', title: 'An Error Occurred', description: 'Signup data is missing. Please try again.' });
-            setFormType('signup');
-            return;
-        }
-
-        const { email, password, firstName, lastName, phone } = signupData;
-
-        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-            email,
-            token: otp,
-            type: 'email',
-        });
-        
-        if (verifyError) {
-             toast({ variant: 'destructive', title: 'OTP Verification Failed', description: verifyError.message });
-        } else if (verifyData.user) {
-            setIsTimerActive(false);
-
-            // Now that OTP is verified, sign in the user to set the password
-             const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-
-            if (signInError) {
-                toast({ variant: 'destructive', title: 'Account Creation Failed', description: `Could not set password: ${signInError.message}` });
-                return;
+        } else if (formType === 'otp') {
+            const { otp } = values as z.infer<typeof otpSchema>;
+            if (!signupData || !signupData.email || !signupData.password) {
+                throw new Error('Signup data is missing. Please try signing up again.');
             }
 
-            // Finally, update the profiles table
+            const { email, password, firstName, lastName, phone } = signupData;
+
+            const { data, error: verifyError } = await supabase.auth.verifyOtp({
+                email,
+                token: otp,
+                type: 'email',
+            });
+            
+            if (verifyError) throw verifyError;
+            if (!data.user) throw new Error('OTP verification failed to return a user.');
+            
+            setIsTimerActive(false);
+
+            const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+            if (signInError) throw new Error(`Could not set password: ${signInError.message}`);
+
             const { error: profileError } = await supabase
               .from('profiles')
               .update({
@@ -164,17 +150,23 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
                 phone: phone,
                 email: email,
               })
-              .eq('id', verifyData.user.id);
+              .eq('id', data.user.id);
             
-            if (profileError) {
-                toast({ variant: 'destructive', title: 'Account Creation Failed', description: `Could not save profile: ${profileError.message}` });
-            } else {
-                toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
-                window.location.href = '/account/dashboard';
-            }
+            if (profileError) throw new Error(`Could not save profile: ${profileError.message}`);
+
+            toast({ title: 'Sign Up Successful!', description: 'Your account has been created.' });
+            window.location.href = '/account/dashboard';
         }
+    } catch (error: any) {
+        console.error(`Error during ${formType}:`, error);
+        toast({
+            variant: 'destructive',
+            title: `${formType.charAt(0).toUpperCase() + formType.slice(1)} Failed`,
+            description: error.message || 'An unknown error occurred.',
+        });
+    } finally {
+        setIsSubmitting(false);
     }
-    setIsSubmitting(false)
   }
 
   return (
