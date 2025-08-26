@@ -46,6 +46,21 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const supabase = createClientComponentClient()
   const router = useRouter()
   const [showPassword, toggleShowPassword] = useToggle(false);
+  const [otpTimer, setOtpTimer] = useState(180); // 3 minutes in seconds
+  const [isTimerActive, setIsTimerActive] = useState(false);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    if (isTimerActive && otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+    } else if (otpTimer === 0) {
+      setIsTimerActive(false);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerActive, otpTimer]);
+
 
   const currentSchema = formType === 'login' ? loginSchema : formType === 'signup' ? signupSchema : otpSchema;
 
@@ -65,6 +80,23 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     // When the form type changes, update the resolver and reset form values.
     form.reset();
   }, [formType, form]);
+
+  const handleResendOtp = async () => {
+      if (!signupData?.email) return;
+      setIsSubmitting(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: signupData.email,
+        options: { shouldCreateUser: true },
+      });
+      if (error) {
+        toast({ variant: 'destructive', title: 'Error Resending OTP', description: error.message });
+      } else {
+        toast({ title: 'New OTP Sent', description: 'Please check your email for the new code.' });
+        setOtpTimer(180); // Reset timer
+        setIsTimerActive(true); // Restart timer
+      }
+      setIsSubmitting(false);
+  }
 
 
   const handleAuthAction = async (values: AuthFormValues) => {
@@ -95,6 +127,8 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         } else {
             toast({ title: 'OTP Sent', description: 'Please check your email for the verification code.' });
             setFormType('otp');
+            setIsTimerActive(true);
+            setOtpTimer(180);
         }
     } else if (formType === 'otp') {
         const { otp } = values as z.infer<typeof otpSchema>;
@@ -115,6 +149,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         if (verifyError) {
              toast({ variant: 'destructive', title: 'OTP Verification Failed', description: verifyError.message });
         } else if (verifyData.user) {
+            setIsTimerActive(false);
             // OTP is valid, now update the user with the rest of the data
             const { error: updateError } = await supabase.auth.updateUser({
                 password: password,
@@ -272,10 +307,18 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
       </CardContent>
        <CardFooter className="flex-col items-start gap-2">
          {formType === 'otp' && (
-            <p className="text-sm text-muted-foreground">
-                Didn't receive a code?{' '}
-                <Button variant="link" size="sm" className="p-0 h-auto" onClick={() => handleAuthAction(signupData!)}>Resend OTP</Button>
-            </p>
+            <div className="text-sm text-muted-foreground">
+              {isTimerActive && otpTimer > 0 ? (
+                <span>Resend OTP in {Math.floor(otpTimer / 60)}:{otpTimer % 60 < 10 ? `0${otpTimer % 60}` : otpTimer % 60}</span>
+              ) : (
+                <>
+                    Didn't receive a code?{' '}
+                    <Button variant="link" size="sm" className="p-0 h-auto" onClick={handleResendOtp} disabled={isSubmitting}>
+                        Resend OTP
+                    </Button>
+                </>
+              )}
+            </div>
          )}
         <p className="text-sm text-muted-foreground text-center w-full">
           {formType === 'login' ? "Don't have an account?" : "Already have an account?"}
