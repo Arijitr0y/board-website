@@ -48,8 +48,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   const [otpTimer, setOtpTimer] = useState(180); // 3 minutes in seconds
   const [isTimerActive, setIsTimerActive] = useState(false);
   
-  const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
 
 
   useEffect(() => {
@@ -82,7 +81,6 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   useEffect(() => {
     // When the form type changes, update the resolver and reset form values.
     form.reset();
-    setOtp(new Array(6).fill(''));
   }, [formType, form]);
 
   const handleResendOtp = async () => {
@@ -181,34 +179,14 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
     }
   }
 
-  const handleOtpChange = (element: HTMLInputElement, index: number) => {
-    const value = element.value.replace(/[^0-9]/g, ''); // Only allow numbers
-    
-    if (value.length > 1) {
-        // Handle paste
-        if (value.length === 6) {
-            const newOtp = value.split('');
-            setOtp(newOtp);
-            form.setValue('otp', value, { shouldValidate: true });
-            inputRefs.current[5]?.focus();
-        }
-        return;
-    }
+  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const otpValue = value.replace(/[^0-9]/g, '').slice(0, 6);
+    form.setValue('otp', otpValue, { shouldValidate: true });
 
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    form.setValue('otp', newOtp.join(''), { shouldValidate: true });
-
-    // Move to next input if a digit is entered
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+    if (otpValue.length === 6) {
+      // Automatically submit the form
+      form.handleSubmit(handleAuthAction)();
     }
   };
 
@@ -229,7 +207,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleAuthAction)} className="space-y-4">
+          <form ref={formRef} onSubmit={form.handleSubmit(handleAuthAction)} className="space-y-4">
              {formType === 'signup' && (
               <>
                  <div className="grid grid-cols-2 gap-4">
@@ -322,35 +300,44 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
             )}
             
             {formType === 'otp' && (
-                 <FormField
-                  control={form.control}
-                  name="otp"
-                  render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>One-Time Password</FormLabel>
-                        <FormControl>
-                            <div className="flex justify-between gap-2">
-                                {otp.map((data, index) => (
-                                    <Input
-                                        key={index}
-                                        type="text"
-                                        maxLength={1}
-                                        value={data}
-                                        onChange={e => handleOtpChange(e.target, index)}
-                                        onKeyDown={e => handleKeyDown(e, index)}
-                                        ref={el => (inputRefs.current[index] = el)}
-                                        className="w-10 h-10 text-center text-lg"
-                                    />
-                                ))}
+              <FormField
+                control={form.control}
+                name="otp"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>One-Time Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        {/* Hidden real input */}
+                        <Input
+                          {...field}
+                          type="text" // Use text to allow seeing pasted content on some devices
+                          maxLength={6}
+                          onChange={handleOtpChange}
+                          className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-transparent caret-transparent p-0"
+                          style={{ letterSpacing: '2.3em', paddingLeft: '1rem', textAlign: 'left'}}
+                          autoFocus
+                          onFocus={(e) => e.target.select()}
+                        />
+                        {/* Visual display */}
+                        <div className="flex justify-between gap-2" aria-hidden="true">
+                          {Array.from({ length: 6 }).map((_, index) => (
+                            <div
+                              key={index}
+                              className="w-10 h-10 flex items-center justify-center text-lg border-2 rounded-md transition-all duration-200"
+                            >
+                              {field.value?.[index] || ''}
                             </div>
-                        </FormControl>
-                        {/* Hidden input to hold the combined OTP for react-hook-form */}
-                        <input type="hidden" {...field} />
-                        <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                          ))}
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
+
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
