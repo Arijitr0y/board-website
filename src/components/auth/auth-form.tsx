@@ -45,13 +45,25 @@ export function AuthForm() {
   const handleAuthAction = async (data: z.infer<typeof signupSchema>) => {
     setIsSubmitting(true)
     const supabase = createClient()
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+    if (!siteUrl) {
+      toast({
+        variant: 'destructive',
+        title: 'Configuration Error',
+        description: 'Site URL is not configured. Please set NEXT_PUBLIC_SITE_URL.',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
 
     if (formType === 'signup') {
       const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: `${location.origin}/auth/callback`,
+          emailRedirectTo: `${siteUrl}/auth/callback`,
         },
       })
       if (error) {
