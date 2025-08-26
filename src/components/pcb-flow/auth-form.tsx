@@ -13,31 +13,59 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { toast } from '@/hooks/use-toast'
-import { Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useToggle } from '@/hooks/use-toggle'
 
-const formSchema = z.object({
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
+});
+
+const signupSchema = z.object({
+  firstName: z.string().min(1, { message: 'First name is required.' }),
+  lastName: z.string().min(1, { message: 'Last name is required.' }),
+  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters long.' }),
-})
+});
 
-export function AuthForm() {
+const formSchema = z.union([loginSchema, signupSchema]);
+
+type AuthFormValues = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
+
+export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'signup' }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formType, setFormType] = useState<'login' | 'signup'>('login')
+  const [formType, setFormType] = useState<'login' | 'signup'>(initialView)
   const supabase = createClientComponentClient()
   const router = useRouter()
-  
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const [showPassword, toggleShowPassword] = useToggle(false);
+
+  const currentSchema = formType === 'login' ? loginSchema : signupSchema;
+
+  const form = useForm<AuthFormValues>({
+    resolver: zodResolver(currentSchema),
     defaultValues: {
       email: '',
       password: '',
+      ...(formType === 'signup' && { firstName: '', lastName: '', phone: '' }),
     },
-  })
+  });
 
-  const handleAuthAction = async (values: z.infer<typeof formSchema>) => {
+  // Reset form when type changes
+  useState(() => {
+    form.reset({
+        email: '',
+        password: '',
+        ...(formType === 'signup' ? { firstName: '', lastName: '', phone: '' } : {}),
+    });
+  });
+
+
+  const handleAuthAction = async (values: AuthFormValues) => {
     setIsSubmitting(true)
     if (formType === 'login') {
-      const { error } = await supabase.auth.signInWithPassword(values)
+      const { email, password } = values as z.infer<typeof loginSchema>;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast({ variant: 'destructive', title: 'Login Failed', description: error.message })
       } else {
@@ -46,9 +74,16 @@ export function AuthForm() {
         router.refresh()
       }
     } else {
+      const { email, password, firstName, lastName, phone } = values as z.infer<typeof signupSchema>;
       const { error } = await supabase.auth.signUp({
-        ...values,
+        email,
+        password,
         options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            phone,
+          },
           emailRedirectTo: `${location.origin}/auth/callback`,
         },
       })
@@ -68,12 +103,57 @@ export function AuthForm() {
         <CardDescription>
           {formType === 'login' 
             ? 'Enter your credentials to access your account.' 
-            : 'Enter your email and password to get started.'}
+            : 'Enter your details to get started.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleAuthAction)} className="space-y-4">
+             {formType === 'signup' && (
+              <>
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                            <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+                 <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+91 98765 43210" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             <FormField
               control={form.control}
               name="email"
@@ -93,9 +173,23 @@ export function AuthForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
+                  <div className="relative">
+                    <FormControl>
+                      <Input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="••••••••" 
+                        {...field}
+                        className="pr-10"
+                       />
+                    </FormControl>
+                    <button 
+                        type="button" 
+                        onClick={toggleShowPassword}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                    >
+                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
