@@ -17,7 +17,6 @@ export async function deleteUserAccount() {
 
   // To delete a user, we need admin privileges.
   // The service_role key must be available.
-  // Replace YOUR_SUPABASE_SERVICE_ROLE_KEY with your actual service role key.
   const serviceRoleKey = "YOUR_SUPABASE_SERVICE_ROLE_KEY";
 
   if (!serviceRoleKey || serviceRoleKey === "YOUR_SUPABASE_SERVICE_ROLE_KEY") {
