@@ -18,14 +18,46 @@ import { supabase } from '@/lib/supabase-client'
 import { cn } from '@/lib/utils'
 
 const authSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }).optional(),
-  password: z.string().min(1, { message: 'Password is required.' }).optional(),
-  firstName: z.string().min(1, { message: 'First name is required.' }).optional(),
-  lastName: z.string().min(1, { message: 'Last name is required.' }).optional(),
-  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }).optional(),
-  otp: z.string().length(6, { message: 'Please enter the 6-digit code.' }).optional(),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  password: z.string().min(8, { message: 'Password must be at least 8 characters.' }),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  phone: z.string().optional(),
+  otp: z.string().optional(),
+  formType: z.enum(['login', 'signup', 'otp']),
 }).superRefine((data, ctx) => {
-    // This is a placeholder for form-level validation if needed later
+    if (data.formType === 'signup') {
+        if (!data.firstName || data.firstName.length < 1) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['firstName'],
+                message: 'First name is required.',
+            });
+        }
+        if (!data.lastName || data.lastName.length < 1) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['lastName'],
+                message: 'Last name is required.',
+            });
+        }
+         if (!data.phone || data.phone.length < 10) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['phone'],
+                message: 'Please enter a valid phone number.',
+            });
+        }
+    }
+     if (data.formType === 'otp') {
+        if (!data.otp || data.otp.length !== 6) {
+             ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['otp'],
+                message: 'Please enter the 6-digit code.',
+            });
+        }
+    }
 });
 
 
@@ -53,9 +85,13 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
         lastName: '',
         phone: '',
         otp: '',
+        formType: initialView,
     },
   });
   
+  useEffect(() => {
+    form.setValue('formType', formType);
+  }, [formType, form]);
 
   useEffect(() => {
     if (formType === 'otp' && inputRefs.current[0]) {
@@ -64,14 +100,16 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   }, [formType]);
   
   useEffect(() => {
-    // When the form type changes, reset form values.
+    // When the form type changes, reset form values but maintain the formType.
+    const currentEmail = form.getValues('email');
     form.reset({
-        email: '',
+        email: formType === 'otp' ? currentEmail : '',
         password: '',
         firstName: '',
         lastName: '',
         phone: '',
         otp: '',
+        formType: formType,
     });
     setOtp(new Array(6).fill(""));
   }, [formType, form]);
@@ -79,6 +117,7 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
   useEffect(() => {
     if (otp.join("").length === 6) {
         form.setValue('otp', otp.join(""));
+        form.trigger('otp'); // Manually trigger validation for the OTP field
         form.handleSubmit(handleAuthAction)();
     }
   }, [otp, form]);
@@ -162,10 +201,6 @@ export function AuthForm({ view: initialView = 'login' }: { view?: 'login' | 'si
             if (!data.user) throw new Error('OTP verification failed to return a user.');
             
             setIsTimerActive(false);
-
-            // Log in with the verified user credentials to establish a session
-            const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-            if (signInError) throw new Error(`Could not set password: ${signInError.message}`);
 
             const { error: profileError } = await supabase
               .from('profiles')
