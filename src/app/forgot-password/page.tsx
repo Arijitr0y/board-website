@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
     setMsg(null);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.href, // Required for OTP flow to use correct email template
+        redirectTo: 'http://localhost:3000/this-url-is-not-used', // This is required but not used for OTP flow
     });
 
     if (resetError) {
@@ -113,7 +113,7 @@ export default function ForgotPasswordPage() {
         return;
     }
 
-    // Step 2: Update the password for the user
+    // Step 2: Update the password for the user. This works because verifyOtp has created a temporary session.
     const { error: updateError } = await supabase.auth.updateUser({ password });
     
     if (updateError) {
@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
     // Step 3: Sign out to clear the temporary recovery session
     await supabase.auth.signOut();
         
-    setMsg("Your password has been successfully updated! You can now sign in.");
+    setMsg("Your password has been successfully updated! Redirecting to sign in...");
     
     setTimeout(() => {
         router.push('/login');
