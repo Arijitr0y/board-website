@@ -8,20 +8,34 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, User as UserIcon, Shield, Package, ShoppingCart, Headset, History } from 'lucide-react';
+import { Loader2, User as UserIcon, Shield, Package, ShoppingCart, Headset, History, MapPin, Edit, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+
+const mockAddress = {
+  fullName: 'Arijit Roy',
+  addressLine1: 'Embassy Tech Village',
+  addressLine2: 'Outer Ring Road',
+  city: 'Bengaluru',
+  state: 'Karnataka',
+  zip: '560103',
+  country: 'India',
+  phone: '+91 12345 67890',
+};
 
 // Mock user data for local testing in Firestudio
-const mockUser: User = {
+const mockUser: User & { shippingAddress?: any, billingAddress?: any } = {
   id: 'mock-user-id',
   app_metadata: { provider: 'email' },
   user_metadata: { full_name: 'Arijit Roy (Test)', phone: '+91 12345 67890' },
   aud: 'authenticated',
   created_at: new Date().toISOString(),
   email: 'arijit1roy@gmail.com',
+  shippingAddress: mockAddress,
+  billingAddress: null, // To demonstrate the "Add Address" state
 };
 
 const mockAllOrders = [
@@ -64,33 +78,79 @@ const NavLink = ({ active, onClick, children }: { active: boolean; onClick: () =
     </button>
 );
 
-
-const ProfileInformation = ({ user }: { user: User }) => (
+const AddressCard = ({ title, address, onAdd, onEdit }: { title: string, address: any, onAdd: () => void, onEdit: () => void }) => (
     <Card>
-        <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Update your personal details here.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">{title}</CardTitle>
+            <Button variant="ghost" size="sm" onClick={address ? onEdit : onAdd}>
+                {address ? <Edit className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+                {address ? 'Edit' : 'Add'}
+            </Button>
         </CardHeader>
-        <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input id="fullName" defaultValue={user.user_metadata?.full_name} />
+        <Separator />
+        <CardContent className="pt-6">
+            {address ? (
+                <div className="text-sm text-muted-foreground space-y-1">
+                    <p className="font-semibold text-foreground">{address.fullName}</p>
+                    <p>{address.addressLine1}</p>
+                    {address.addressLine2 && <p>{address.addressLine2}</p>}
+                    <p>{address.city}, {address.state} {address.zip}</p>
+                    <p>{address.country}</p>
+                    <p>Phone: {address.phone}</p>
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" defaultValue={user.email} disabled />
+            ) : (
+                <div className="text-sm text-muted-foreground text-center">
+                    <p>No {title.toLowerCase()} on file.</p>
                 </div>
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" type="tel" defaultValue={user.user_metadata?.phone} />
-            </div>
+            )}
         </CardContent>
-        <CardFooter>
-            <Button>Save Changes</Button>
-        </CardFooter>
     </Card>
+);
+
+
+const ProfileInformation = ({ user }: { user: User & { shippingAddress?: any, billingAddress?: any } }) => (
+    <div className="space-y-8">
+        <Card>
+            <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>Update your personal details here.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input id="fullName" defaultValue={user.user_metadata?.full_name} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input id="email" type="email" defaultValue={user.email} disabled />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" type="tel" defaultValue={user.user_metadata?.phone} />
+                </div>
+            </CardContent>
+            <CardFooter>
+                <Button>Save Changes</Button>
+            </CardFooter>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <AddressCard 
+                title="Shipping Address" 
+                address={user.shippingAddress}
+                onAdd={() => alert('Add Shipping Address functionality to be implemented.')}
+                onEdit={() => alert('Edit Shipping Address functionality to be implemented.')}
+            />
+            <AddressCard 
+                title="Billing Address" 
+                address={user.billingAddress}
+                onAdd={() => alert('Add Billing Address functionality to be implemented.')}
+                onEdit={() => alert('Edit Billing Address functionality to be implemented.')}
+            />
+        </div>
+    </div>
 );
 
 const OrderHistory = () => (
