@@ -54,14 +54,15 @@ export default function ForgotPasswordPage() {
     setMsg(null);
     setCountdown(120);
 
-    const { error: otpError } = await supabase.auth.resetPasswordForEmail(email, {
-        // This is a dummy URL, but it's required to prevent Supabase from sending a link
-        // and instead ensures the email template sends an OTP if configured.
-        redirectTo: `${window.location.origin}/auth/callback`
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+            shouldCreateUser: false, // Don't create a new user
+        }
     });
 
     if (otpError) {
-      setError(otpError.message ?? "Could not send OTP. Please ensure the email is correct and try again later.");
+      setError(otpError.message ?? "Could not send OTP. Please ensure the email is registered.");
     } else {
       setMsg(`An OTP has been sent to ${email}.`);
       setStep('otp');
@@ -96,7 +97,7 @@ export default function ForgotPasswordPage() {
         const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
             email,
             token: otp,
-            type: 'recovery',
+            type: 'email', // Use 'email' type for simple OTP verification
         });
         
         if (verifyError) throw verifyError;
@@ -106,7 +107,7 @@ export default function ForgotPasswordPage() {
         if (updateError) throw updateError;
         
         setMsg("Your password has been successfully updated! You can now sign in.");
-        // Reset state and go back to the start
+        
         setTimeout(() => {
             window.location.href = '/login';
         }, 2000);
@@ -118,6 +119,8 @@ export default function ForgotPasswordPage() {
               errorMessage = 'Your OTP has expired. Please request a new one.';
             } else if (err.message.includes('invalid')) {
               errorMessage = 'The OTP you entered is invalid.';
+            } else if (err.message.includes('User not found')) {
+                errorMessage = "No user found with this email address.";
             }
         }
         setError(errorMessage);
