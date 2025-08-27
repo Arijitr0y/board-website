@@ -102,8 +102,8 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
       if (error) throw error;
 
-      // On success, redirect to dashboard
-      window.location.href = '/admin/dashboard';
+      // On success, redirect to customer order page
+      window.location.href = '/order';
 
     } catch (err: any)       {
       let errorMessage = 'Failed to verify OTP.';

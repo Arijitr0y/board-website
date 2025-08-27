@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default async function SignupPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user) redirect('/admin/dashboard');
+  if (user) redirect('/order');
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
