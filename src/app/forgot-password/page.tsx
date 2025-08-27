@@ -24,22 +24,25 @@ export default function ForgotPasswordPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
-  const [countdown, setCountdown] = useState(120);
-  const [isResendDisabled, setIsResendDisabled] = useState(true);
+  const [countdown, setCountdown] = useState(60);
+  const [isResendDisabled, setIsResendDisabled] = useState(false);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (step === 'otp' && countdown > 0) {
-      setIsResendDisabled(true);
+    if (step === 'otp' && isResendDisabled) {
       timer = setInterval(() => {
-        setCountdown((prevCountdown) => prevCountdown - 1);
+        setCountdown((prevCountdown) => {
+          if (prevCountdown <= 1) {
+            clearInterval(timer);
+            setIsResendDisabled(false);
+            return 0;
+          }
+          return prevCountdown - 1;
+        });
       }, 1000);
-    } else if (countdown === 0) {
-      setIsResendDisabled(false);
-      clearInterval(timer);
     }
     return () => clearInterval(timer);
-  }, [step, countdown]);
+  }, [step, isResendDisabled]);
   
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -52,7 +55,8 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
     setMsg(null);
-    setCountdown(120);
+    setCountdown(60);
+    setIsResendDisabled(true);
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
@@ -69,13 +73,6 @@ export default function ForgotPasswordPage() {
     }
     setLoading(false);
   };
-  
-  const handleResend = async () => {
-    setLoading(true);
-    await handleSendOtp();
-    setLoading(false);
-  };
-
 
   const handleResetPassword = async (e: FormEvent) => {
     e.preventDefault();
@@ -181,15 +178,15 @@ export default function ForgotPasswordPage() {
                                     </InputOTPGroup>
                                 </InputOTP>
                                 <div className="text-center text-sm text-muted-foreground pt-1">
-                                  {countdown > 0 ? (
+                                  {isResendDisabled ? (
                                     <span>Resend OTP in: {formatTime(countdown)}</span>
                                   ) : (
                                     <Button
                                       variant="link"
                                       size="sm"
-                                      onClick={handleResend}
-                                      disabled={isResendDisabled || loading}
-                                      className="p-0"
+                                      onClick={handleSendOtp}
+                                      disabled={loading}
+                                      className="p-0 h-auto"
                                       type="button"
                                     >
                                       {loading ? 'Sending...' : 'Resend OTP'}
