@@ -105,11 +105,8 @@ export function Header() {
                     </div>
                 ) : (
                      <div className="flex items-center gap-2">
-                        <Button asChild variant="ghost">
-                            <LoadingLink href="/login">Log In</LoadingLink>
-                        </Button>
                         <Button asChild>
-                            <LoadingLink href="/signup">Sign Up</LoadingLink>
+                            <LoadingLink href="/login">Login / Sign Up</LoadingLink>
                         </Button>
                      </div>
                 )
