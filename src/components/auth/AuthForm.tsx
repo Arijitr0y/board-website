@@ -12,6 +12,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp"
 import type { User } from '@supabase/supabase-js';
+import Link from 'next/link';
 
 
 type Mode = 'signin' | 'signup';
@@ -193,7 +194,12 @@ export default function AuthForm({ mode }: { mode: Mode }) {
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link href="#" className="text-sm font-medium text-primary hover:underline">
+                        Forgot Password?
+                    </Link>
+                </div>
                 <Input
                 id="password"
                 type="password"
