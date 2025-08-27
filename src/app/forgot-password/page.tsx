@@ -55,7 +55,9 @@ export default function ForgotPasswordPage() {
     setCountdown(120);
 
     const { error: otpError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'this-is-not-used-but-prevents-link'
+        // This is a dummy URL, but it's required to prevent Supabase from sending a link
+        // and instead ensures the email template sends an OTP if configured.
+        redirectTo: `${window.location.origin}/auth/callback`
     });
 
     if (otpError) {
@@ -104,11 +106,10 @@ export default function ForgotPasswordPage() {
         if (updateError) throw updateError;
         
         setMsg("Your password has been successfully updated! You can now sign in.");
-        setStep('email'); 
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setOtp('');
+        // Reset state and go back to the start
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
         
     } catch (err: any) {
         let errorMessage = 'Failed to reset password.';
@@ -122,7 +123,6 @@ export default function ForgotPasswordPage() {
         setError(errorMessage);
     } finally {
         setLoading(false);
-        setOtp('');
     }
   };
 
