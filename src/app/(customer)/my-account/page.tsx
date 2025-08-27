@@ -105,30 +105,24 @@ const AddressDialog = ({ address, onSave, children }: { address: Address | null,
         if (zip.length === 6) {
             setIsFetchingPincode(true);
             try {
-                // In a real app, you would fetch from an API like:
-                // const response = await fetch(`https://api.postalpincode.in/pincode/${zip}`);
-                // const data = await response.json();
-                // if (data && data[0] && data[0].PostOffice && data[0].PostOffice[0]) {
-                //     const postOffice = data[0].PostOffice[0];
-                //     setFormData(prev => ({
-                //         ...prev,
-                //         city: postOffice.District,
-                //         state: postOffice.State,
-                //         country: postOffice.Country,
-                //     }));
-                // }
+                const response = await fetch(`https://api.postalpincode.in/pincode/${zip}`);
+                const data = await response.json();
                 
-                // Mock API response for demonstration
-                await new Promise(resolve => setTimeout(resolve, 500));
-                setFormData(prev => ({
-                    ...prev,
-                    city: 'Bengaluru',
-                    state: 'Karnataka',
-                    country: 'India',
-                }));
+                if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice[0]) {
+                    const postOffice = data[0].PostOffice[0];
+                    setFormData(prev => ({
+                        ...prev,
+                        city: postOffice.District,
+                        state: postOffice.State,
+                        country: postOffice.Country,
+                    }));
+                } else {
+                     setFormData(prev => ({ ...prev, city: '', state: '', country: 'India' }));
+                }
 
             } catch (error) {
                 console.error("Failed to fetch pincode data:", error);
+                 setFormData(prev => ({ ...prev, city: '', state: '', country: 'India' }));
             } finally {
                 setIsFetchingPincode(false);
             }
@@ -189,16 +183,16 @@ const AddressDialog = ({ address, onSave, children }: { address: Address | null,
                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="city">City</Label>
-                            <Input id="city" value={formData.city || ''} onChange={handleInputChange} readOnly={isFetchingPincode} />
+                            <Input id="city" value={formData.city || ''} onChange={handleInputChange} disabled={isFetchingPincode} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="state">State</Label>
-                            <Input id="state" value={formData.state || ''} onChange={handleInputChange} readOnly={isFetchingPincode} />
+                            <Input id="state" value={formData.state || ''} onChange={handleInputChange} disabled={isFetchingPincode} />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="country">Country</Label>
-                        <Input id="country" value={formData.country || ''} onChange={handleInputChange} readOnly={isFetchingPincode} />
+                        <Input id="country" value={formData.country || ''} onChange={handleInputChange} disabled={isFetchingPincode} />
                     </div>
                 </div>
                 <DialogFooter>
