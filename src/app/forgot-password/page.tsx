@@ -11,9 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { useRouter } from 'next/navigation';
 
 export default function ForgotPasswordPage() {
   const supabase = createClient();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -56,7 +58,9 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMsg(null);
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback`, // This is often required but won't be used
+    });
 
     if (resetError) {
       setError(resetError.message ?? "Could not send password reset email. Please ensure the email is registered.");
@@ -85,37 +89,41 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMsg(null);
 
-    try {
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-            email,
-            token: otp,
-            type: 'recovery',
-        });
-        
-        if (verifyError) throw verifyError;
-
-        const { error: updateError } = await supabase.auth.updateUser({ password });
-        if (updateError) throw updateError;
-        
-        setMsg("Your password has been successfully updated! You can now sign in.");
-        
-        setTimeout(() => {
-            window.location.href = '/login';
-        }, 2000);
-        
-    } catch (err: any) {
+    // Step 1: Verify the OTP
+    const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'recovery',
+    });
+    
+    if (verifyError) {
         let errorMessage = 'Failed to reset password.';
-        if (err.message) {
-            if (err.message.includes('expired')) {
-              errorMessage = 'Your OTP has expired. Please request a new one.';
-            } else if (err.message.includes('invalid') || err.message.includes('token has invalid')) {
-              errorMessage = 'The OTP you entered is invalid.';
-            }
+        if (verifyError.message.includes('expired')) {
+            errorMessage = 'Your OTP has expired. Please request a new one.';
+        } else if (verifyError.message.includes('invalid') || verifyError.message.includes('Token has invalid')) {
+            errorMessage = 'The OTP you entered is invalid.';
         }
         setError(errorMessage);
-    } finally {
         setLoading(false);
+        return;
     }
+
+    // Step 2: Update the password for the now-authenticated user
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    
+    if (updateError) {
+        setError(updateError.message ?? "Could not update password.");
+        setLoading(false);
+        return;
+    }
+        
+    setMsg("Your password has been successfully updated! You can now sign in.");
+    
+    setTimeout(() => {
+        router.push('/login');
+    }, 2000);
+        
+    setLoading(false);
   };
 
   return (
