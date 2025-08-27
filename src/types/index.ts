@@ -27,3 +27,16 @@ export interface CartItem {
   buildTime: BuildTime;
   shippingMethod: ShippingMethod;
 }
+
+export type Address = {
+  fullName: string;
+  companyName?: string;
+  gstNumber?: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  phone: string;
+};

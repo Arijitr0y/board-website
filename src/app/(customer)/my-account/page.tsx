@@ -16,33 +16,21 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import type { Address } from '@/types';
+import { updateUserProfile } from './actions';
+import { useToast } from '@/hooks/use-toast';
 
 
-// Mock address type
-type Address = {
-  fullName: string;
-  companyName?: string;
-  gstNumber?: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-  phone: string;
-};
-
-
-// Mock user data for local testing in Firestudio
-const mockUser: User & { shippingAddress?: Address | null, billingAddress?: Address | null } = {
-  id: 'mock-user-id',
-  app_metadata: { provider: 'email' },
-  user_metadata: { full_name: 'Arijit Roy (Test)', phone: '+91 12345 67890' },
-  aud: 'authenticated',
-  created_at: new Date().toISOString(),
-  email: 'arijit1roy@gmail.com',
-  shippingAddress: null,
-  billingAddress: null,
+type Profile = {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  company_name: string | null;
+  gst_number: string | null;
+  shipping_address: Address | null;
+  billing_address: Address | null;
 };
 
 const mockAllOrders = [
@@ -88,10 +76,18 @@ const NavLink = ({ active, onClick, children }: { active: boolean; onClick: () =
 );
 
 
-const AddressDialog = ({ address, onSave, children }: { address: Address | null, onSave: (newAddress: Address) => void, children: React.ReactNode }) => {
+const AddressDialog = ({ address, onSave, children, isEditing }: { address: Address | null, onSave: (newAddress: Address) => void, children: React.ReactNode, isEditing: boolean }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [formData, setFormData] = useState<Partial<Address>>(address || {});
     const [isFetchingPincode, setIsFetchingPincode] = useState(false);
+
+    useEffect(() => {
+        if (address) {
+            setFormData(address);
+        } else {
+            setFormData({});
+        }
+    }, [address]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -130,7 +126,6 @@ const AddressDialog = ({ address, onSave, children }: { address: Address | null,
     };
 
     const handleSave = () => {
-        // Dummy save action
         const newAddress: Address = {
             fullName: formData.fullName || '',
             companyName: formData.companyName || '',
@@ -205,12 +200,12 @@ const AddressDialog = ({ address, onSave, children }: { address: Address | null,
 };
 
 
-const AddressCard = ({ title, address, onUpdate }: { title: string, address: Address | null, onUpdate: (newAddress: Address | null) => void }) => (
+const AddressCard = ({ title, address, onUpdate, isEditing }: { title: string, address: Address | null, onUpdate: (newAddress: Address | null) => void, isEditing: boolean }) => (
     <Card className="flex-1">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="text-base">{title}</CardTitle>
-             {address && (
-                 <AddressDialog address={address} onSave={onUpdate}>
+             {address && isEditing && (
+                 <AddressDialog address={address} onSave={onUpdate} isEditing={isEditing}>
                     <Button variant="ghost" size="sm" className="-mt-2 -mr-2">
                         <Edit className="mr-2 h-3 w-3" /> Edit
                     </Button>
@@ -228,8 +223,8 @@ const AddressCard = ({ title, address, onUpdate }: { title: string, address: Add
                     <p>Phone: {address.phone}</p>
                 </div>
             ) : (
-                <AddressDialog address={address} onSave={onUpdate}>
-                     <button className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                <AddressDialog address={address} onSave={onUpdate} isEditing={isEditing}>
+                     <button className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50" disabled={!isEditing}>
                         <PlusCircle className="h-10 w-10 mb-2" />
                         <span className="font-medium">Add {title}</span>
                     </button>
@@ -240,49 +235,106 @@ const AddressCard = ({ title, address, onUpdate }: { title: string, address: Add
 );
 
 
-const ProfileInformation = ({ user, setUser }: { user: User & { shippingAddress?: Address | null, billingAddress?: Address | null }, setUser: Function }) => {
-    const [useSameAddress, setUseSameAddress] = useState(true);
+const ProfileInformation = ({ user, profile, onProfileUpdate }: { user: User | null, profile: Profile, onProfileUpdate: (newProfile: Profile) => void }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const { toast } = useToast();
+
+    const [formData, setFormData] = useState(profile);
+
+    useEffect(() => {
+        setFormData(profile);
+    }, [profile]);
     
-    const handleUpdateShipping = (newAddress: Address | null) => {
-        const updatedUser = { ...user, shippingAddress: newAddress };
-        if (useSameAddress) {
-            updatedUser.billingAddress = newAddress;
-        }
-        setUser(updatedUser);
+    const [useSameAddress, setUseSameAddress] = useState(
+      JSON.stringify(profile.shipping_address) === JSON.stringify(profile.billing_address) &&
+      profile.shipping_address !== null
+    );
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
     };
 
-    const handleUpdateBilling = (newAddress: Address | null) => {
-        setUser({ ...user, billingAddress: newAddress });
+    const handleUpdateAddress = (type: 'shipping_address' | 'billing_address', newAddress: Address | null) => {
+        const updatedData = { ...formData, [type]: newAddress };
+        if (type === 'shipping_address' && useSameAddress) {
+            updatedData.billing_address = newAddress;
+        }
+        setFormData(updatedData);
     };
 
     const handleToggleSameAddress = (checked: boolean) => {
         setUseSameAddress(checked);
         if (checked) {
-             setUser({ ...user, billingAddress: user.shippingAddress });
+             setFormData(prev => ({ ...prev, billing_address: prev.shipping_address }));
         }
+    };
+
+    const handleSaveChanges = async () => {
+        if (!user) return;
+        setIsSaving(true);
+        const result = await updateUserProfile({
+            fullName: formData.full_name || '',
+            phone: formData.phone || '',
+            companyName: formData.company_name || '',
+            gstNumber: formData.gst_number || '',
+            shippingAddress: formData.shipping_address,
+            billingAddress: formData.billing_address,
+        });
+
+        if (result.error) {
+            toast({
+                variant: 'destructive',
+                title: 'Error updating profile',
+                description: result.error,
+            });
+        } else {
+            toast({
+                title: 'Profile Updated',
+                description: 'Your changes have been saved successfully.',
+            });
+            onProfileUpdate(formData); // Update parent state
+            setIsEditing(false);
+        }
+        setIsSaving(false);
+    };
+
+    const handleCancel = () => {
+        setFormData(profile); // Revert changes
+        setIsEditing(false);
     };
     
     return (
     <Card>
-        <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Manage your personal and address details.</CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+                <CardTitle>Profile Information</CardTitle>
+                <CardDescription>Manage your personal and address details.</CardDescription>
+            </div>
+            {!isEditing ? (
+                 <Button variant="outline" onClick={() => setIsEditing(true)}>
+                    <Edit className="mr-2 h-4 w-4" /> Edit Profile
+                 </Button>
+            ) : null}
         </CardHeader>
         <CardContent className="space-y-6">
             <div className="space-y-4">
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input id="fullName" defaultValue={user.user_metadata?.full_name} />
+                        <Label htmlFor="full_name">Full Name</Label>
+                        <Input id="full_name" value={formData.full_name || ''} onChange={handleInputChange} disabled={!isEditing} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" type="email" defaultValue={user.email} disabled />
+                        <Input id="email" type="email" value={user?.email || ''} disabled />
                     </div>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" defaultValue={user.user_metadata?.phone} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} disabled={!isEditing} />
+                    </div>
                 </div>
             </div>
 
@@ -293,26 +345,34 @@ const ProfileInformation = ({ user, setUser }: { user: User & { shippingAddress?
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <AddressCard 
                         title="Shipping Address" 
-                        address={user.shippingAddress}
-                        onUpdate={handleUpdateShipping}
+                        address={formData.shipping_address}
+                        onUpdate={(addr) => handleUpdateAddress('shipping_address', addr)}
+                        isEditing={isEditing}
                     />
                      <div className="flex items-center space-x-2 mt-4 lg:col-span-2">
-                        <Switch id="same-address" checked={useSameAddress} onCheckedChange={handleToggleSameAddress} />
+                        <Switch id="same-address" checked={useSameAddress} onCheckedChange={handleToggleSameAddress} disabled={!isEditing}/>
                         <Label htmlFor="same-address">Billing address is the same as shipping</Label>
                     </div>
                     {!useSameAddress && (
                         <AddressCard 
                             title="Billing Address" 
-                            address={user.billingAddress}
-                            onUpdate={handleUpdateBilling}
+                            address={formData.billing_address}
+                            onUpdate={(addr) => handleUpdateAddress('billing_address', addr)}
+                            isEditing={isEditing}
                         />
                     )}
                 </div>
             </div>
         </CardContent>
-        <CardFooter>
-            <Button>Save All Changes</Button>
-        </CardFooter>
+        {isEditing && (
+            <CardFooter className="justify-end gap-2">
+                <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                <Button onClick={handleSaveChanges} disabled={isSaving}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Changes
+                </Button>
+            </CardFooter>
+        )}
     </Card>
 )};
 
@@ -441,16 +501,49 @@ const AccountDashboard = () => (
 
 
 export default function MyAccountPage() {
-  const [user, setUser] = useState<any>(mockUser); // Use 'any' to allow dynamic updates to mock object
+  const router = useRouter();
+  const supabase = createClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>('profile');
+  const [loading, setLoading] = useState(true);
 
-  if (!user) {
+  useEffect(() => {
+    const fetchUserAndProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profileData) {
+          setProfile(profileData);
+        } else if (error) {
+          console.error("Error fetching profile:", error);
+          router.push('/login'); // Or show an error
+        }
+      } else {
+        router.push('/login');
+      }
+      setLoading(false);
+    };
+    fetchUserAndProfile();
+  }, [router, supabase]);
+
+  if (loading || !user || !profile) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
+
+  const handleProfileUpdate = (newProfile: Profile) => {
+      setProfile(newProfile);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -461,7 +554,7 @@ export default function MyAccountPage() {
                 <div className="md:col-span-1">
                      <div className="flex flex-col gap-4">
                         <div className="text-center md:text-left mb-4">
-                            <h1 className="text-2xl font-bold">{user.user_metadata?.full_name || 'User'}</h1>
+                            <h1 className="text-2xl font-bold">{profile.full_name || user.email}</h1>
                             <p className="text-muted-foreground text-sm">{user.email}</p>
                         </div>
                         <nav className="grid items-start gap-1 text-sm font-medium">
@@ -490,7 +583,7 @@ export default function MyAccountPage() {
                 </div>
                 <div className="md:col-span-3">
                     {activeView === 'dashboard' && <AccountDashboard />}
-                    {activeView === 'profile' && <ProfileInformation user={user} setUser={setUser} />}
+                    {activeView === 'profile' && <ProfileInformation user={user} profile={profile} onProfileUpdate={handleProfileUpdate} />}
                     {activeView === 'orders' && <OrderHistory />}
                     {activeView === 'security' && <LoginAndSecurity />}
                 </div>
@@ -500,5 +593,3 @@ export default function MyAccountPage() {
     </div>
   );
 }
-
-    
