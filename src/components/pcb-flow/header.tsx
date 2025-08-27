@@ -122,9 +122,6 @@ export function Header() {
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                          <LoadingLink href="/admin/dashboard">Dashboard</LoadingLink>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
                           <LoadingLink href="/my-account">My Account</LoadingLink>
                       </DropdownMenuItem>
                        <DropdownMenuItem asChild>
