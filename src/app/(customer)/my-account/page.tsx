@@ -21,6 +21,8 @@ import { Switch } from '@/components/ui/switch';
 // Mock address type
 type Address = {
   fullName: string;
+  companyName?: string;
+  gstNumber?: string;
   addressLine1: string;
   addressLine2?: string;
   city: string;
@@ -94,6 +96,8 @@ const AddressDialog = ({ address, onSave, children }: { address: Address | null,
         // Dummy save action
         const newAddress: Address = {
             fullName: 'Arijit Roy',
+            companyName: 'PCB Flow Inc.',
+            gstNumber: '29ABCDE1234F1Z5',
             addressLine1: 'Embassy Tech Village',
             addressLine2: 'Outer Ring Road',
             city: 'Bengaluru',
@@ -122,6 +126,14 @@ const AddressDialog = ({ address, onSave, children }: { address: Address | null,
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">Full Name</Label>
                         <Input id="name" defaultValue={address?.fullName} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="company" className="text-right">Company</Label>
+                        <Input id="company" placeholder="(Optional)" defaultValue={address?.companyName} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="gst" className="text-right">GST No.</Label>
+                        <Input id="gst" placeholder="(Optional)" defaultValue={address?.gstNumber} className="col-span-3" />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="address1" className="text-right">Address 1</Label>
@@ -390,7 +402,7 @@ const AccountDashboard = () => (
 
 export default function MyAccountPage() {
   const [user, setUser] = useState<any>(mockUser); // Use 'any' to allow dynamic updates to mock object
-  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
+  const [activeView, setActiveView] = useState<ActiveView>('profile');
 
   if (!user) {
     return (
@@ -448,3 +460,4 @@ export default function MyAccountPage() {
     </div>
   );
 }
+
