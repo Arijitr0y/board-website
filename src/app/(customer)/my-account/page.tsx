@@ -529,17 +529,29 @@ export default function MyAccountPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
-        const { data: profileData, error } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileData) {
-          setProfile(profileData);
-        } else if (error) {
+        if (error) {
           console.error("Error fetching profile:", error);
-          // Don't redirect, maybe show an error to create a profile
+        }
+
+        if (data) {
+          setProfile(data);
+        } else {
+          // If no profile exists, create a default one to avoid errors
+          setProfile({
+            id: user.id,
+            full_name: user.user_metadata.full_name || user.email,
+            phone: user.user_metadata.phone || null,
+            company_name: null,
+            gst_number: null,
+            shipping_address: null,
+            billing_address: null,
+          });
         }
       } else {
         router.push('/login');
@@ -547,17 +559,15 @@ export default function MyAccountPage() {
       setLoading(false);
     };
 
+    fetchUserAndProfile();
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          fetchUserAndProfile();
-        } else if (event === 'SIGNED_OUT') {
+        if (event === 'SIGNED_OUT') {
           router.push('/login');
         }
       }
     );
-    
-    fetchUserAndProfile();
 
     return () => {
       authListener.subscription.unsubscribe();
@@ -625,3 +635,5 @@ export default function MyAccountPage() {
     </div>
   );
 }
+
+    
