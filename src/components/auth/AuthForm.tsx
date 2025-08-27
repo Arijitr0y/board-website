@@ -8,10 +8,12 @@ import { Input } from '../ui/input';
 import { useLoading } from '@/context/loading-context';
 import { Label } from '../ui/label';
 
-export default function AuthForm() {
+type Mode = 'signin' | 'signup';
+
+export default function AuthForm({ mode }: { mode: Mode }) {
   const supabase = createClient();
   const { setIsLoading } = useLoading();
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,21 +35,22 @@ export default function AuthForm() {
     };
   }, [otpSent, timer]);
 
-  const handlePhoneSubmit = async (e: FormEvent) => {
+  const handleEmailSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setMsg(null);
 
-    // Add country code if missing, assuming India for this example
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-
     try {
       const { error } = await supabase.auth.signInWithOtp({
-        phone: formattedPhone,
+        email: email,
+        options: {
+          shouldCreateUser: mode === 'signup',
+          emailRedirectTo: `${location.origin}/auth/callback`,
+        },
       });
       if (error) throw error;
-      setMsg(`OTP sent to ${formattedPhone}`);
+      setMsg(`OTP sent to ${email}`);
       setOtpSent(true);
       setTimer(120); // Reset timer
     } catch (err: any) {
@@ -62,13 +65,11 @@ export default function AuthForm() {
     setLoading(true);
     setError(null);
 
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-
     try {
       const { data, error } = await supabase.auth.verifyOtp({
-        phone: formattedPhone,
+        email: email,
         token: otp,
-        type: 'sms',
+        type: 'email',
       });
       if (error) throw error;
 
@@ -91,15 +92,15 @@ export default function AuthForm() {
 
   if (!otpSent) {
     return (
-      <form onSubmit={handlePhoneSubmit} className="space-y-4">
+      <form onSubmit={handleEmailSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
+          <Label htmlFor="email">Email Address</Label>
           <Input
-            id="phone"
-            type="tel"
-            placeholder="e.g., +919876543210"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -142,7 +143,7 @@ export default function AuthForm() {
               setOtp('');
               setError(null);
               setMsg(null);
-              handlePhoneSubmit(e);
+              handleEmailSubmit(e);
             }}
           >
             Resend OTP
