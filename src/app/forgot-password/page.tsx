@@ -92,21 +92,19 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMsg(null);
 
-    // Step 1: Verify the OTP
-    const { error: verifyError } = await supabase.auth.verifyOtp({
+    // Step 1: Verify the OTP to get a temporary session
+    const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
         type: 'recovery',
     });
     
-    if (verifyError) {
-        let errorMessage = 'Failed to verify OTP.';
-        if (verifyError.message.includes('expired')) {
+    if (verifyError || !verifyData.session) {
+        let errorMessage = 'Failed to verify OTP. It may be invalid or expired.';
+        if (verifyError?.message.includes('expired')) {
             errorMessage = 'Your OTP has expired. Please request a new one.';
-        } else if (verifyError.message.includes('invalid') || verifyError.message.includes('Token has invalid')) {
+        } else if (verifyError?.message.includes('invalid')) {
             errorMessage = 'The OTP you entered is invalid.';
-        } else {
-            errorMessage = verifyError.message;
         }
         setError(errorMessage);
         setLoading(false);
