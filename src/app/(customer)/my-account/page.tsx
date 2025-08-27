@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, User as UserIcon, Shield, Package, ShoppingCart, Headset, History, MapPin, Edit, PlusCircle } from 'lucide-react';
+import { Loader2, User as UserIcon, Shield, Package, ShoppingCart, Headset, History, MapPin, Edit, PlusCircle, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +39,7 @@ const mockUser: User & { shippingAddress?: any, billingAddress?: any } = {
 };
 
 const mockAllOrders = [
-  {
+    {
     id: "ORD-003",
     date: "2023-06-25",
     status: "Fulfilled",
@@ -79,16 +79,15 @@ const NavLink = ({ active, onClick, children }: { active: boolean; onClick: () =
 );
 
 const AddressCard = ({ title, address, onAdd, onEdit }: { title: string, address: any, onAdd: () => void, onEdit: () => void }) => (
-    <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">{title}</CardTitle>
-            <Button variant="ghost" size="sm" onClick={address ? onEdit : onAdd}>
-                {address ? <Edit className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+    <Card className="flex-1">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="text-base">{title}</CardTitle>
+            <Button variant="ghost" size="sm" onClick={address ? onEdit : onAdd} className="-mt-2 -mr-2">
+                {address ? <Edit className="mr-2 h-3 w-3" /> : <PlusCircle className="mr-2 h-3 w-3" />}
                 {address ? 'Edit' : 'Add'}
             </Button>
         </CardHeader>
-        <Separator />
-        <CardContent className="pt-6">
+        <CardContent className="pt-0">
             {address ? (
                 <div className="text-sm text-muted-foreground space-y-1">
                     <p className="font-semibold text-foreground">{address.fullName}</p>
@@ -99,7 +98,7 @@ const AddressCard = ({ title, address, onAdd, onEdit }: { title: string, address
                     <p>Phone: {address.phone}</p>
                 </div>
             ) : (
-                <div className="text-sm text-muted-foreground text-center">
+                <div className="text-sm text-muted-foreground text-center py-4">
                     <p>No {title.toLowerCase()} on file.</p>
                 </div>
             )}
@@ -109,14 +108,14 @@ const AddressCard = ({ title, address, onAdd, onEdit }: { title: string, address
 
 
 const ProfileInformation = ({ user }: { user: User & { shippingAddress?: any, billingAddress?: any } }) => (
-    <div className="space-y-8">
-        <Card>
-            <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Update your personal details here.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <Card>
+        <CardHeader>
+            <CardTitle>Profile Information</CardTitle>
+            <CardDescription>Manage your personal and address details.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+            <div className="space-y-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      <div className="space-y-2">
                         <Label htmlFor="fullName">Full Name</Label>
                         <Input id="fullName" defaultValue={user.user_metadata?.full_name} />
@@ -130,27 +129,32 @@ const ProfileInformation = ({ user }: { user: User & { shippingAddress?: any, bi
                     <Label htmlFor="phone">Phone Number</Label>
                     <Input id="phone" type="tel" defaultValue={user.user_metadata?.phone} />
                 </div>
-            </CardContent>
-            <CardFooter>
-                <Button>Save Changes</Button>
-            </CardFooter>
-        </Card>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <AddressCard 
-                title="Shipping Address" 
-                address={user.shippingAddress}
-                onAdd={() => alert('Add Shipping Address functionality to be implemented.')}
-                onEdit={() => alert('Edit Shipping Address functionality to be implemented.')}
-            />
-            <AddressCard 
-                title="Billing Address" 
-                address={user.billingAddress}
-                onAdd={() => alert('Add Billing Address functionality to be implemented.')}
-                onEdit={() => alert('Edit Billing Address functionality to be implemented.')}
-            />
-        </div>
-    </div>
+            <Separator />
+
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium">Addresses</h3>
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <AddressCard 
+                        title="Shipping Address" 
+                        address={user.shippingAddress}
+                        onAdd={() => alert('Add Shipping Address functionality to be implemented.')}
+                        onEdit={() => alert('Edit Shipping Address functionality to be implemented.')}
+                    />
+                    <AddressCard 
+                        title="Billing Address" 
+                        address={user.billingAddress}
+                        onAdd={() => alert('Add Billing Address functionality to be implemented.')}
+                        onEdit={() => alert('Edit Billing Address functionality to be implemented.')}
+                    />
+                </div>
+            </div>
+        </CardContent>
+        <CardFooter>
+            <Button>Save All Changes</Button>
+        </CardFooter>
+    </Card>
 );
 
 const OrderHistory = () => (
