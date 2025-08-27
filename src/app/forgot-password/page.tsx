@@ -54,10 +54,8 @@ export default function ForgotPasswordPage() {
     setMsg(null);
     setCountdown(120);
 
-    // Use signInWithOtp to send a verification code.
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false }, // Don't create a new user if they don't exist
+    const { error: otpError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'this-is-not-used-but-prevents-link'
     });
 
     if (otpError) {
@@ -93,22 +91,19 @@ export default function ForgotPasswordPage() {
     setMsg(null);
 
     try {
-        // First, verify the OTP is correct for the given email
         const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
             email,
             token: otp,
-            type: 'email', // Use 'email' type for password resets, not 'magiclink'
+            type: 'recovery',
         });
         
         if (verifyError) throw verifyError;
         if (!verifyData.user) throw new Error("Could not verify OTP. The user may not exist or the token is invalid.");
 
-        // If OTP is correct, update the user's password
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
         
         setMsg("Your password has been successfully updated! You can now sign in.");
-        // Reset form state after success
         setStep('email'); 
         setEmail('');
         setPassword('');
