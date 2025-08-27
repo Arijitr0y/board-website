@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
     setMsg(null);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback`, // This is a dummy URL but required by Supabase
     });
 
     if (resetError) {
@@ -92,18 +92,20 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMsg(null);
 
-    const { error: verifyError } = await supabase.auth.verifyOtp({
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
         type: 'recovery',
     });
     
-    if (verifyError) {
+    if (verifyError || !data.session) {
         let errorMessage = 'Failed to reset password.';
-        if (verifyError.message.includes('expired')) {
+        if (verifyError?.message.includes('expired')) {
             errorMessage = 'Your OTP has expired. Please request a new one.';
-        } else if (verifyError.message.includes('invalid') || verifyError.message.includes('Token has invalid')) {
+        } else if (verifyError?.message.includes('invalid') || verifyError?.message.includes('Token has invalid')) {
             errorMessage = 'The OTP you entered is invalid.';
+        } else {
+            errorMessage = verifyError?.message ?? errorMessage;
         }
         setError(errorMessage);
         setLoading(false);
@@ -113,7 +115,7 @@ export default function ForgotPasswordPage() {
     const { error: updateError } = await supabase.auth.updateUser({ password });
     
     if (updateError) {
-        setError(updateError.message ?? "Could not update password. The session might have expired.");
+        setError(updateError.message ?? "Could not update password. Please try again.");
         setLoading(false);
         return;
     }
