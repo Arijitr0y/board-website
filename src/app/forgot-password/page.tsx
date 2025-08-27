@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
     setMsg(null);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback`, // This is a dummy URL but required by Supabase
+        redirectTo: window.location.href, // Required for OTP flow to use correct email template
     });
 
     if (resetError) {
@@ -92,26 +92,28 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMsg(null);
 
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
+    // Step 1: Verify the OTP
+    const { error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
         type: 'recovery',
     });
     
-    if (verifyError || !data.session) {
-        let errorMessage = 'Failed to reset password.';
-        if (verifyError?.message.includes('expired')) {
+    if (verifyError) {
+        let errorMessage = 'Failed to verify OTP.';
+        if (verifyError.message.includes('expired')) {
             errorMessage = 'Your OTP has expired. Please request a new one.';
-        } else if (verifyError?.message.includes('invalid') || verifyError?.message.includes('Token has invalid')) {
+        } else if (verifyError.message.includes('invalid') || verifyError.message.includes('Token has invalid')) {
             errorMessage = 'The OTP you entered is invalid.';
         } else {
-            errorMessage = verifyError?.message ?? errorMessage;
+            errorMessage = verifyError.message;
         }
         setError(errorMessage);
         setLoading(false);
         return;
     }
 
+    // Step 2: Update the password for the user
     const { error: updateError } = await supabase.auth.updateUser({ password });
     
     if (updateError) {
@@ -120,6 +122,7 @@ export default function ForgotPasswordPage() {
         return;
     }
     
+    // Step 3: Sign out to clear the temporary recovery session
     await supabase.auth.signOut();
         
     setMsg("Your password has been successfully updated! You can now sign in.");
