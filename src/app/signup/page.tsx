@@ -17,7 +17,7 @@ export default async function SignupPage() {
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl">Create an Account</CardTitle>
-                    <CardDescription>Enter your email to get started with a one-time password.</CardDescription>
+                    <CardDescription>Enter your details to get started with a one-time password.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <AuthForm mode="signup" />
