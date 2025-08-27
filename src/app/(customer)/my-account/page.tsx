@@ -8,34 +8,37 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, User as UserIcon, Shield, Package, ShoppingCart, Headset, History, MapPin, Edit, PlusCircle, FileText } from 'lucide-react';
+import { Loader2, User as UserIcon, Shield, History, Headset, Edit, PlusCircle, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
-const mockAddress = {
-  fullName: 'Arijit Roy',
-  addressLine1: 'Embassy Tech Village',
-  addressLine2: 'Outer Ring Road',
-  city: 'Bengaluru',
-  state: 'Karnataka',
-  zip: '560103',
-  country: 'India',
-  phone: '+91 12345 67890',
+// Mock address type
+type Address = {
+  fullName: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  phone: string;
 };
 
+
 // Mock user data for local testing in Firestudio
-const mockUser: User & { shippingAddress?: any, billingAddress?: any } = {
+const mockUser: User & { shippingAddress?: Address | null, billingAddress?: Address | null } = {
   id: 'mock-user-id',
   app_metadata: { provider: 'email' },
   user_metadata: { full_name: 'Arijit Roy (Test)', phone: '+91 12345 67890' },
   aud: 'authenticated',
   created_at: new Date().toISOString(),
   email: 'arijit1roy@gmail.com',
-  shippingAddress: mockAddress,
-  billingAddress: null, // To demonstrate the "Add Address" state
+  shippingAddress: null,
+  billingAddress: null,
 };
 
 const mockAllOrders = [
@@ -78,14 +81,80 @@ const NavLink = ({ active, onClick, children }: { active: boolean; onClick: () =
     </button>
 );
 
-const AddressCard = ({ title, address, onAdd, onEdit }: { title: string, address: any, onAdd: () => void, onEdit: () => void }) => (
+
+const AddressDialog = ({ address, onSave, children }: { address: Address | null, onSave: (newAddress: Address) => void, children: React.ReactNode }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    // In a real app, form state would be managed here (e.g., with react-hook-form)
+    
+    const handleSave = () => {
+        // Dummy save action
+        const newAddress: Address = {
+            fullName: 'Arijit Roy',
+            addressLine1: 'Embassy Tech Village',
+            addressLine2: 'Outer Ring Road',
+            city: 'Bengaluru',
+            state: 'Karnataka',
+            zip: '560103',
+            country: 'India',
+            phone: '+91 98765 43210'
+        };
+        onSave(newAddress);
+        setIsOpen(false);
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                {children}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>{address ? 'Edit Address' : 'Add New Address'}</DialogTitle>
+                    <DialogDescription>
+                        Enter your address details here. Click save when you're done.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-right">Full Name</Label>
+                        <Input id="name" defaultValue={address?.fullName} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="address1" className="text-right">Address 1</Label>
+                        <Input id="address1" defaultValue={address?.addressLine1} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="city" className="text-right">City</Label>
+                        <Input id="city" defaultValue={address?.city} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="state" className="text-right">State</Label>
+                        <Input id="state" defaultValue={address?.state} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="zip" className="text-right">ZIP Code</Label>
+                        <Input id="zip" defaultValue={address?.zip} className="col-span-3" />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button type="submit" onClick={handleSave}>Save Address</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+
+const AddressCard = ({ title, address, onUpdate }: { title: string, address: Address | null, onUpdate: (newAddress: Address | null) => void }) => (
     <Card className="flex-1">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="text-base">{title}</CardTitle>
-            <Button variant="ghost" size="sm" onClick={address ? onEdit : onAdd} className="-mt-2 -mr-2">
-                {address ? <Edit className="mr-2 h-3 w-3" /> : <PlusCircle className="mr-2 h-3 w-3" />}
-                {address ? 'Edit' : 'Add'}
-            </Button>
+             {address && (
+                <Button variant="ghost" size="sm" onClick={() => {}} className="-mt-2 -mr-2">
+                    <Edit className="mr-2 h-3 w-3" /> Edit
+                </Button>
+             )}
         </CardHeader>
         <CardContent className="pt-0">
             {address ? (
@@ -98,16 +167,29 @@ const AddressCard = ({ title, address, onAdd, onEdit }: { title: string, address
                     <p>Phone: {address.phone}</p>
                 </div>
             ) : (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                    <p>No {title.toLowerCase()} on file.</p>
-                </div>
+                <AddressDialog address={address} onSave={onUpdate}>
+                     <button className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                        <PlusCircle className="h-10 w-10 mb-2" />
+                        <span className="font-medium">Add {title}</span>
+                    </button>
+                </AddressDialog>
             )}
         </CardContent>
     </Card>
 );
 
 
-const ProfileInformation = ({ user }: { user: User & { shippingAddress?: any, billingAddress?: any } }) => (
+const ProfileInformation = ({ user, setUser }: { user: User & { shippingAddress?: Address | null, billingAddress?: Address | null }, setUser: Function }) => {
+    
+    const handleUpdateShipping = (newAddress: Address) => {
+        setUser({ ...user, shippingAddress: newAddress });
+    };
+
+    const handleUpdateBilling = (newAddress: Address) => {
+        setUser({ ...user, billingAddress: newAddress });
+    };
+    
+    return (
     <Card>
         <CardHeader>
             <CardTitle>Profile Information</CardTitle>
@@ -139,14 +221,12 @@ const ProfileInformation = ({ user }: { user: User & { shippingAddress?: any, bi
                     <AddressCard 
                         title="Shipping Address" 
                         address={user.shippingAddress}
-                        onAdd={() => alert('Add Shipping Address functionality to be implemented.')}
-                        onEdit={() => alert('Edit Shipping Address functionality to be implemented.')}
+                        onUpdate={handleUpdateShipping}
                     />
                     <AddressCard 
                         title="Billing Address" 
                         address={user.billingAddress}
-                        onAdd={() => alert('Add Billing Address functionality to be implemented.')}
-                        onEdit={() => alert('Edit Billing Address functionality to be implemented.')}
+                        onUpdate={handleUpdateBilling}
                     />
                 </div>
             </div>
@@ -155,7 +235,7 @@ const ProfileInformation = ({ user }: { user: User & { shippingAddress?: any, bi
             <Button>Save All Changes</Button>
         </CardFooter>
     </Card>
-);
+)};
 
 const OrderHistory = () => (
      <Card>
@@ -214,7 +294,7 @@ const LoginAndSecurity = () => (
 );
 
 export default function MyAccountPage() {
-  const [user] = useState<User | null>(mockUser);
+  const [user, setUser] = useState<any>(mockUser); // Use 'any' to allow dynamic updates to mock object
   const [activeView, setActiveView] = useState<ActiveView>('profile');
 
   if (!user) {
@@ -258,7 +338,7 @@ export default function MyAccountPage() {
                      </div>
                 </div>
                 <div className="md:col-span-3">
-                    {activeView === 'profile' && <ProfileInformation user={user} />}
+                    {activeView === 'profile' && <ProfileInformation user={user} setUser={setUser} />}
                     {activeView === 'orders' && <OrderHistory />}
                     {activeView === 'security' && <LoginAndSecurity />}
                 </div>
