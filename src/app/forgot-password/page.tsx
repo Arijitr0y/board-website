@@ -55,21 +55,16 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
     setMsg(null);
-    setCountdown(60);
-    setIsResendDisabled(true);
 
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-            shouldCreateUser: false, // Don't create a new user
-        }
-    });
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
 
-    if (otpError) {
-      setError(otpError.message ?? "Could not send OTP. Please ensure the email is registered.");
+    if (resetError) {
+      setError(resetError.message ?? "Could not send password reset email. Please ensure the email is registered.");
     } else {
-      setMsg(`An OTP has been sent to ${email}.`);
+      setMsg(`A password reset OTP has been sent to ${email}.`);
       setStep('otp');
+      setIsResendDisabled(true);
+      setCountdown(60);
     }
     setLoading(false);
   };
@@ -91,14 +86,13 @@ export default function ForgotPasswordPage() {
     setMsg(null);
 
     try {
-        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        const { error: verifyError } = await supabase.auth.verifyOtp({
             email,
             token: otp,
-            type: 'email', // Use 'email' type for simple OTP verification
+            type: 'recovery',
         });
         
         if (verifyError) throw verifyError;
-        if (!verifyData.user) throw new Error("Could not verify OTP. The user may not exist or the token is invalid.");
 
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
@@ -114,10 +108,8 @@ export default function ForgotPasswordPage() {
         if (err.message) {
             if (err.message.includes('expired')) {
               errorMessage = 'Your OTP has expired. Please request a new one.';
-            } else if (err.message.includes('invalid')) {
+            } else if (err.message.includes('invalid') || err.message.includes('token has invalid')) {
               errorMessage = 'The OTP you entered is invalid.';
-            } else if (err.message.includes('User not found')) {
-                errorMessage = "No user found with this email address.";
             }
         }
         setError(errorMessage);
@@ -184,7 +176,9 @@ export default function ForgotPasswordPage() {
                                     <Button
                                       variant="link"
                                       size="sm"
-                                      onClick={handleSendOtp}
+                                      onClick={() => {
+                                        handleSendOtp();
+                                      }}
                                       disabled={loading}
                                       className="p-0 h-auto"
                                       type="button"
