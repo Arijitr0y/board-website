@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/pcb-flow/header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,21 +17,37 @@ import Link from 'next/link';
 export default function MyAccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
       const supabase = createClient();
       const { data, error } = await supabase.auth.getUser();
 
+      // The key change is here: we only redirect if the auth check completes
+      // and we definitively have no user. We don't redirect on the initial
+      // loading state where data.user might be temporarily null.
       if (error || !data.user) {
-        redirect('/login');
+        router.push('/login');
       } else {
         setUser(data.user);
       }
       setLoading(false);
     };
-    fetchUser();
-  }, []);
+
+    const checkSession = async () => {
+        const supabase = createClient();
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+            router.push('/login');
+        } else {
+            setUser(data.session.user);
+            setLoading(false);
+        }
+    };
+
+    checkSession();
+  }, [router]);
 
   if (loading) {
     return (
@@ -42,7 +58,8 @@ export default function MyAccountPage() {
   }
   
   if (!user) {
-    return null; // Should be redirected, but as a fallback
+    // This case will likely be brief as the redirect should have already happened.
+    return null; 
   }
 
   return (
