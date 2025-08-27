@@ -28,6 +28,24 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const [loading, setLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
 
+  const [countdown, setCountdown] = useState(120);
+  const [isResendDisabled, setIsResendDisabled] = useState(true);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (step === 'otp' && countdown > 0) {
+      setIsResendDisabled(true);
+      timer = setInterval(() => {
+        setCountdown((prevCountdown) => prevCountdown - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setIsResendDisabled(false);
+      clearInterval(timer);
+    }
+    return () => clearInterval(timer);
+  }, [step, countdown]);
+
+
   useEffect(() => {
     if (otp.length === 6) {
       handleOtpSubmit();
@@ -35,11 +53,12 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   }, [otp]);
 
 
-  const handleEmailSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleEmailSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     setLoading(true);
     setError(null);
     setMsg(null);
+    setCountdown(120);
 
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -60,6 +79,12 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResend = async () => {
+    setLoading(true);
+    await handleEmailSubmit();
+    setLoading(false);
   };
 
   const handleOtpSubmit = async () => {
@@ -96,6 +121,12 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
   if (step === 'otp') {
     return (
         <div className="space-y-4">
@@ -107,7 +138,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
               maxLength={6}
               value={otp}
               onChange={(value) => setOtp(value)}
-              disabled={otpLoading}
+              disabled={otpLoading || countdown === 0}
             >
               <InputOTPGroup className="mx-auto">
                 <InputOTPSlot index={0} />
@@ -119,8 +150,26 @@ export default function AuthForm({ mode }: { mode: Mode }) {
               </InputOTPGroup>
             </InputOTP>
             {otpLoading && <p className="text-sm text-center text-muted-foreground animate-pulse">Verifying...</p>}
+            
+            <div className="text-center text-sm text-muted-foreground">
+              {countdown > 0 ? (
+                <span>Time remaining: {formatTime(countdown)}</span>
+              ) : (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={handleResend}
+                  disabled={isResendDisabled || loading}
+                  className="p-0"
+                >
+                  {loading ? 'Sending...' : 'Resend OTP'}
+                </Button>
+              )}
+            </div>
+
             {error && <p className="text-sm text-center text-destructive pt-2">{error}</p>}
-            {msg && <p className="text-sm text-center text-muted-foreground pt-2">{msg}</p>}
+            {msg && !error && <p className="text-sm text-center text-muted-foreground pt-2">{msg}</p>}
+
             <Button variant="link" size="sm" onClick={() => { setStep('email'); setError(null); setMsg(null); }} className="w-full">
               Use a different email
             </Button>
