@@ -23,7 +23,6 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [otpLoading, setOtpLoading] = useState(false);
   
   const [countdown, setCountdown] = useState(120);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
@@ -55,21 +54,16 @@ export default function ForgotPasswordPage() {
     setMsg(null);
     setCountdown(120);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-       redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password-confirm`,
-    });
-    
-    // In a real OTP-flow, you'd use a different method.
-    // Supabase resetPasswordForEmail sends a link. We will simulate OTP for this flow.
-    const { data, error: otpError } = await supabase.auth.signInWithOtp({
+    // Use signInWithOtp to send a verification code.
+    const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false },
+      options: { shouldCreateUser: false }, // Don't create a new user if they don't exist
     });
 
     if (otpError) {
-      setError(otpError.message ?? "Could not send OTP. Please ensure the email is correct.");
+      setError(otpError.message ?? "Could not send OTP. Please ensure the email is correct and try again later.");
     } else {
-      setMsg(`OTP sent to ${email}.`);
+      setMsg(`An OTP has been sent to ${email}.`);
       setStep('otp');
     }
     setLoading(false);
@@ -99,21 +93,27 @@ export default function ForgotPasswordPage() {
     setMsg(null);
 
     try {
+        // First, verify the OTP is correct for the given email
         const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
             email,
             token: otp,
-            type: 'email',
+            type: 'email', // Use 'email' type for password resets, not 'magiclink'
         });
         
         if (verifyError) throw verifyError;
-        if (!verifyData.user) throw new Error("Could not verify OTP.");
+        if (!verifyData.user) throw new Error("Could not verify OTP. The user may not exist or the token is invalid.");
 
+        // If OTP is correct, update the user's password
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
         
-        setMsg("Your password has been successfully updated!");
-        setStep('email'); // Reset the form
+        setMsg("Your password has been successfully updated! You can now sign in.");
+        // Reset form state after success
+        setStep('email'); 
         setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setOtp('');
         
     } catch (err: any) {
         let errorMessage = 'Failed to reset password.';
