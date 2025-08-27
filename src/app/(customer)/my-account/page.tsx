@@ -8,13 +8,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, User as UserIcon, Shield, History, Headset, Edit, PlusCircle, FileText } from 'lucide-react';
+import { Loader2, User as UserIcon, Shield, History, Headset, Edit, PlusCircle, FileText, Package, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+
 
 // Mock address type
 type Address = {
@@ -58,6 +60,8 @@ const mockAllOrders = [
   },
 ];
 
+const mockRecentOrders = mockAllOrders.slice(0, 3);
+
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
     case "Pending": return "secondary";
@@ -67,7 +71,7 @@ const getStatusBadgeVariant = (status: string) => {
   }
 }
 
-type ActiveView = 'profile' | 'orders' | 'security';
+type ActiveView = 'dashboard' | 'profile' | 'orders' | 'security';
 
 const NavLink = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
     <button
@@ -151,12 +155,14 @@ const AddressCard = ({ title, address, onUpdate }: { title: string, address: Add
         <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="text-base">{title}</CardTitle>
              {address && (
-                <Button variant="ghost" size="sm" onClick={() => {}} className="-mt-2 -mr-2">
-                    <Edit className="mr-2 h-3 w-3" /> Edit
-                </Button>
+                 <AddressDialog address={address} onSave={onUpdate}>
+                    <Button variant="ghost" size="sm" className="-mt-2 -mr-2">
+                        <Edit className="mr-2 h-3 w-3" /> Edit
+                    </Button>
+                 </AddressDialog>
              )}
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 min-h-[160px] flex flex-col justify-center">
             {address ? (
                 <div className="text-sm text-muted-foreground space-y-1">
                     <p className="font-semibold text-foreground">{address.fullName}</p>
@@ -180,13 +186,28 @@ const AddressCard = ({ title, address, onUpdate }: { title: string, address: Add
 
 
 const ProfileInformation = ({ user, setUser }: { user: User & { shippingAddress?: Address | null, billingAddress?: Address | null }, setUser: Function }) => {
+    const [useSameAddress, setUseSameAddress] = useState(true);
     
-    const handleUpdateShipping = (newAddress: Address) => {
-        setUser({ ...user, shippingAddress: newAddress });
+    const handleUpdateShipping = (newAddress: Address | null) => {
+        const updatedUser = { ...user, shippingAddress: newAddress };
+        if (useSameAddress) {
+            updatedUser.billingAddress = newAddress;
+        }
+        setUser(updatedUser);
     };
 
-    const handleUpdateBilling = (newAddress: Address) => {
+    const handleUpdateBilling = (newAddress: Address | null) => {
         setUser({ ...user, billingAddress: newAddress });
+    };
+
+    const handleToggleSameAddress = (checked: boolean) => {
+        setUseSameAddress(checked);
+        if (checked) {
+             setUser({ ...user, billingAddress: user.shippingAddress });
+        } else {
+             // Optionally clear billing address when untoggled, or leave as is
+             // setUser({ ...user, billingAddress: null });
+        }
     };
     
     return (
@@ -223,11 +244,17 @@ const ProfileInformation = ({ user, setUser }: { user: User & { shippingAddress?
                         address={user.shippingAddress}
                         onUpdate={handleUpdateShipping}
                     />
-                    <AddressCard 
-                        title="Billing Address" 
-                        address={user.billingAddress}
-                        onUpdate={handleUpdateBilling}
-                    />
+                     <div className="flex items-center space-x-2 mt-4 lg:col-span-2">
+                        <Switch id="same-address" checked={useSameAddress} onCheckedChange={handleToggleSameAddress} />
+                        <Label htmlFor="same-address">Billing address is the same as shipping</Label>
+                    </div>
+                    {!useSameAddress && (
+                        <AddressCard 
+                            title="Billing Address" 
+                            address={user.billingAddress}
+                            onUpdate={handleUpdateBilling}
+                        />
+                    )}
                 </div>
             </div>
         </CardContent>
@@ -293,9 +320,77 @@ const LoginAndSecurity = () => (
     </Card>
 );
 
+
+const AccountDashboard = () => (
+     <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                    Total Orders
+                </CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">{mockAllOrders.length}</div>
+                <p className="text-xs text-muted-foreground">
+                    Across all time
+                </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                    Lifetime Spend
+                </CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">₹6,000.00</div>
+                 <p className="text-xs text-muted-foreground">
+                    Based on {mockAllOrders.length} fulfilled orders
+                </p>
+                </CardContent>
+            </Card>
+        </div>
+
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Recent Orders</CardTitle>
+                <Button variant="outline" size="sm" asChild>
+                   <Link href="/order-history">View All</Link>
+                </Button>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Order ID</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {mockRecentOrders.map((order) => (
+                            <TableRow key={order.id}>
+                                <TableCell className="font-medium">{order.id}</TableCell>
+                                <TableCell>{order.date}</TableCell>
+                                <TableCell><Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge></TableCell>
+                                <TableCell className="text-right">{order.total}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    </div>
+);
+
+
 export default function MyAccountPage() {
   const [user, setUser] = useState<any>(mockUser); // Use 'any' to allow dynamic updates to mock object
-  const [activeView, setActiveView] = useState<ActiveView>('profile');
+  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
 
   if (!user) {
     return (
@@ -318,6 +413,10 @@ export default function MyAccountPage() {
                             <p className="text-muted-foreground text-sm">{user.email}</p>
                         </div>
                         <nav className="grid items-start gap-1 text-sm font-medium">
+                            <NavLink active={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')}>
+                                <FileText className="h-4 w-4" />
+                                Dashboard
+                            </NavLink>
                             <NavLink active={activeView === 'profile'} onClick={() => setActiveView('profile')}>
                                 <UserIcon className="h-4 w-4" />
                                 Profile Information
@@ -338,6 +437,7 @@ export default function MyAccountPage() {
                      </div>
                 </div>
                 <div className="md:col-span-3">
+                    {activeView === 'dashboard' && <AccountDashboard />}
                     {activeView === 'profile' && <ProfileInformation user={user} setUser={setUser} />}
                     {activeView === 'orders' && <OrderHistory />}
                     {activeView === 'security' && <LoginAndSecurity />}
