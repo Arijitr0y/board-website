@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useRouter } from 'next/navigation';
@@ -25,6 +25,9 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [countdown, setCountdown] = useState(60);
   const [isResendDisabled, setIsResendDisabled] = useState(false);
@@ -59,8 +62,6 @@ export default function ForgotPasswordPage() {
     setMsg(null);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        // A dummy redirect URL is required by Supabase for this flow, 
-        // but it won't be used since we are handling the OTP on the client.
         redirectTo: `${window.location.origin}/auth/callback`,
     });
 
@@ -91,7 +92,6 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMsg(null);
 
-    // Step 1: Verify the OTP. This creates a temporary, single-use session.
     const { error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
@@ -110,7 +110,6 @@ export default function ForgotPasswordPage() {
         return;
     }
 
-    // Step 2: With the temporary session from the verified OTP, update the password.
     const { error: updateError } = await supabase.auth.updateUser({ password });
     
     if (updateError) {
@@ -119,7 +118,6 @@ export default function ForgotPasswordPage() {
         return;
     }
     
-    // Step 3: Sign out to clear the recovery session and force a new login.
     await supabase.auth.signOut();
         
     setMsg("Your password has been successfully updated! You can now sign in.");
@@ -203,25 +201,49 @@ export default function ForgotPasswordPage() {
                              </div>
                              <div className="space-y-2">
                                 <Label htmlFor="password">New Password</Label>
-                                <Input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                placeholder="••••••••"
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        placeholder="••••••••"
+                                        className="pr-10"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                <Input
-                                id="confirm-password"
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
-                                placeholder="••••••••"
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="confirm-password"
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        placeholder="••••••••"
+                                        className="pr-10"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
                             </div>
                             <Button type="submit" disabled={loading} className="w-full">
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
