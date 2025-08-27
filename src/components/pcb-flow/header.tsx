@@ -104,42 +104,42 @@ export function Header() {
                 </LoadingLink>
             </Button>
             
-            {!loading && (
-                user ? (
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback>{getInitials(user.user_metadata?.full_name)}</AvatarFallback>
-                            </Avatar>
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                         <DropdownMenuLabel>
-                            <p className="font-medium">{user.user_metadata?.full_name}</p>
-                            <p className="text-xs text-muted-foreground font-normal">{user.email}</p>
-                          </DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem asChild>
-                              <LoadingLink href="/admin/dashboard">Dashboard</LoadingLink>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                              <LoadingLink href="/my-account">My Account</LoadingLink>
-                          </DropdownMenuItem>
-                           <DropdownMenuItem asChild>
-                              <LoadingLink href="/order-history">Order History</LoadingLink>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem asChild><SignOutButton /></DropdownMenuItem>
-                      </DropdownMenuContent>
-                   </DropdownMenu>
-                ) : (
-                     <div className="flex items-center gap-2">
-                        <Button asChild>
-                            <LoadingLink href="/login">Login / Sign Up</LoadingLink>
-                        </Button>
-                     </div>
-                )
+            {loading ? (
+              <div className="h-8 w-24"></div> // Placeholder to prevent layout shift
+            ) : user ? (
+               <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>{getInitials(user.user_metadata?.full_name)}</AvatarFallback>
+                        </Avatar>
+                      </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                     <DropdownMenuLabel>
+                        <p className="font-medium">{user.user_metadata?.full_name}</p>
+                        <p className="text-xs text-muted-foreground font-normal">{user.email}</p>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                          <LoadingLink href="/admin/dashboard">Dashboard</LoadingLink>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                          <LoadingLink href="/my-account">My Account</LoadingLink>
+                      </DropdownMenuItem>
+                       <DropdownMenuItem asChild>
+                          <LoadingLink href="/order-history">Order History</LoadingLink>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild><SignOutButton /></DropdownMenuItem>
+                  </DropdownMenuContent>
+               </DropdownMenu>
+            ) : (
+                 <div className="flex items-center gap-2">
+                    <Button asChild>
+                        <LoadingLink href="/login">Login / Sign Up</LoadingLink>
+                    </Button>
+                 </div>
             )}
             
           </div>
