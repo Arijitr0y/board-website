@@ -59,7 +59,9 @@ export default function ForgotPasswordPage() {
     setMsg(null);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback`, // This is often required but won't be used
+        // A dummy redirect URL is required by Supabase for this flow, 
+        // but it won't be used since we are handling the OTP on the client.
+        redirectTo: `${window.location.origin}/auth/callback`,
     });
 
     if (resetError) {
@@ -89,8 +91,8 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMsg(null);
 
-    // Step 1: Verify the OTP
-    const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+    // Step 1: Verify the OTP. This creates a temporary, single-use session.
+    const { error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
         type: 'recovery',
@@ -108,14 +110,17 @@ export default function ForgotPasswordPage() {
         return;
     }
 
-    // Step 2: Update the password for the now-authenticated user
+    // Step 2: With the temporary session from the verified OTP, update the password.
     const { error: updateError } = await supabase.auth.updateUser({ password });
     
     if (updateError) {
-        setError(updateError.message ?? "Could not update password.");
+        setError(updateError.message ?? "Could not update password. The session might have expired.");
         setLoading(false);
         return;
     }
+    
+    // Step 3: Sign out to clear the recovery session and force a new login.
+    await supabase.auth.signOut();
         
     setMsg("Your password has been successfully updated! You can now sign in.");
     
