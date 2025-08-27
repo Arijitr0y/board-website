@@ -1,3 +1,4 @@
+
 'use client';
 
 import { FormEvent, useState } from 'react';
@@ -5,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useLoading } from '@/context/loading-context';
+import { Label } from '../ui/label';
 
 type Mode = 'signin' | 'signup';
 
@@ -13,6 +15,9 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const { setIsLoading } = useLoading();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
+  const [phone, setPhone] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +31,14 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${location.origin}/auth/callback` }
+          options: {
+            data: {
+              full_name: name,
+              title: title,
+              phone: phone,
+            },
+            emailRedirectTo: `${location.origin}/auth/callback`,
+          },
         });
         if (error) throw error;
         setMsg('Check your email to confirm your account.');
@@ -46,20 +58,63 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 max-w-sm">
-      <Input
-        type="email"
-        placeholder="you@example.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <Input
-        type="password"
-        placeholder="••••••••"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
+      {mode === 'signup' && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              type="text"
+              placeholder="Hardware Engineer"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="+1 234 567 890"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+        </>
+      )}
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+       <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+       </div>
       <Button
         type="submit"
         disabled={loading}
