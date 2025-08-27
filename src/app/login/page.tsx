@@ -24,7 +24,7 @@ export default async function LoginPage() {
                     <Card>
                         <CardHeader className="text-center">
                             <CardTitle className="text-2xl">Sign In</CardTitle>
-                            <CardDescription>Enter your email to receive a one-time password to sign in.</CardDescription>
+                            <CardDescription>Enter your email and password to access your account.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <AuthForm mode="signin" />
@@ -35,7 +35,7 @@ export default async function LoginPage() {
                     <Card>
                          <CardHeader className="text-center">
                             <CardTitle className="text-2xl">Create an Account</CardTitle>
-                            <CardDescription>Enter your details to get started with a one-time password.</CardDescription>
+                            <CardDescription>Enter your details to get started. We'll verify your email with an OTP.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <AuthForm mode="signup" />
