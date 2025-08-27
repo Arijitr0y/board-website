@@ -54,7 +54,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     if (otp.length === 6 && mode === 'signup') {
       handleOtpSubmit();
     }
-  }, [otp]);
+  }, [otp, mode]);
 
 
   const handleSignUpDetailsSubmit = async (e?: FormEvent) => {
@@ -196,7 +196,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <Link href="#" className="text-sm font-medium text-primary hover:underline">
+                    <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
                         Forgot Password?
                     </Link>
                 </div>
