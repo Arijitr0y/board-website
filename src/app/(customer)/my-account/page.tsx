@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { Header } from '@/components/pcb-flow/header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,21 +90,63 @@ const NavLink = ({ active, onClick, children }: { active: boolean; onClick: () =
 
 const AddressDialog = ({ address, onSave, children }: { address: Address | null, onSave: (newAddress: Address) => void, children: React.ReactNode }) => {
     const [isOpen, setIsOpen] = useState(false);
-    // In a real app, form state would be managed here (e.g., with react-hook-form)
+    const [formData, setFormData] = useState<Partial<Address>>(address || {});
+    const [isFetchingPincode, setIsFetchingPincode] = useState(false);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+    };
     
+    const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const zip = e.target.value;
+        setFormData(prev => ({ ...prev, zip }));
+
+        if (zip.length === 6) {
+            setIsFetchingPincode(true);
+            try {
+                // In a real app, you would fetch from an API like:
+                // const response = await fetch(`https://api.postalpincode.in/pincode/${zip}`);
+                // const data = await response.json();
+                // if (data && data[0] && data[0].PostOffice && data[0].PostOffice[0]) {
+                //     const postOffice = data[0].PostOffice[0];
+                //     setFormData(prev => ({
+                //         ...prev,
+                //         city: postOffice.District,
+                //         state: postOffice.State,
+                //         country: postOffice.Country,
+                //     }));
+                // }
+                
+                // Mock API response for demonstration
+                await new Promise(resolve => setTimeout(resolve, 500));
+                setFormData(prev => ({
+                    ...prev,
+                    city: 'Bengaluru',
+                    state: 'Karnataka',
+                    country: 'India',
+                }));
+
+            } catch (error) {
+                console.error("Failed to fetch pincode data:", error);
+            } finally {
+                setIsFetchingPincode(false);
+            }
+        }
+    };
+
     const handleSave = () => {
         // Dummy save action
         const newAddress: Address = {
-            fullName: 'Arijit Roy',
-            companyName: 'PCB Flow Inc.',
-            gstNumber: '29ABCDE1234F1Z5',
-            addressLine1: 'Embassy Tech Village',
-            addressLine2: 'Outer Ring Road',
-            city: 'Bengaluru',
-            state: 'Karnataka',
-            zip: '560103',
-            country: 'India',
-            phone: '+91 98765 43210'
+            fullName: formData.fullName || '',
+            companyName: formData.companyName || '',
+            gstNumber: formData.gstNumber || '',
+            addressLine1: formData.addressLine1 || '',
+            city: formData.city || '',
+            state: formData.state || '',
+            zip: formData.zip || '',
+            country: formData.country || 'India',
+            phone: formData.phone || ''
         };
         onSave(newAddress);
         setIsOpen(false);
@@ -115,7 +157,7 @@ const AddressDialog = ({ address, onSave, children }: { address: Address | null,
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>{address ? 'Edit Address' : 'Add New Address'}</DialogTitle>
                     <DialogDescription>
@@ -123,33 +165,40 @@ const AddressDialog = ({ address, onSave, children }: { address: Address | null,
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">Full Name</Label>
-                        <Input id="name" defaultValue={address?.fullName} className="col-span-3" />
+                    <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input id="fullName" value={formData.fullName || ''} onChange={handleInputChange} />
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="company" className="text-right">Company</Label>
-                        <Input id="company" placeholder="(Optional)" defaultValue={address?.companyName} className="col-span-3" />
+                     <div className="space-y-2">
+                        <Label htmlFor="companyName">Company Name <span className="text-muted-foreground">(Optional)</span></Label>
+                        <Input id="companyName" value={formData.companyName || ''} onChange={handleInputChange} />
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="gst" className="text-right">GST No.</Label>
-                        <Input id="gst" placeholder="(Optional)" defaultValue={address?.gstNumber} className="col-span-3" />
+                     <div className="space-y-2">
+                        <Label htmlFor="gstNumber">GST No. <span className="text-muted-foreground">(Optional)</span></Label>
+                        <Input id="gstNumber" value={formData.gstNumber || ''} onChange={handleInputChange} />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="address1" className="text-right">Address 1</Label>
-                        <Input id="address1" defaultValue={address?.addressLine1} className="col-span-3" />
+                    <div className="space-y-2">
+                        <Label htmlFor="addressLine1">Address Line 1</Label>
+                        <Input id="addressLine1" value={formData.addressLine1 || ''} onChange={handleInputChange} />
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="city" className="text-right">City</Label>
-                        <Input id="city" defaultValue={address?.city} className="col-span-3" />
+                    <div className="relative space-y-2">
+                        <Label htmlFor="zip">ZIP / Pincode</Label>
+                        <Input id="zip" value={formData.zip || ''} onChange={handlePincodeChange} maxLength={6} />
+                         {isFetchingPincode && <Loader2 className="absolute right-2 top-8 h-4 w-4 animate-spin" />}
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="state" className="text-right">State</Label>
-                        <Input id="state" defaultValue={address?.state} className="col-span-3" />
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="city">City</Label>
+                            <Input id="city" value={formData.city || ''} onChange={handleInputChange} readOnly={isFetchingPincode} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="state">State</Label>
+                            <Input id="state" value={formData.state || ''} onChange={handleInputChange} readOnly={isFetchingPincode} />
+                        </div>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="zip" className="text-right">ZIP Code</Label>
-                        <Input id="zip" defaultValue={address?.zip} className="col-span-3" />
+                    <div className="space-y-2">
+                        <Label htmlFor="country">Country</Label>
+                        <Input id="country" value={formData.country || ''} onChange={handleInputChange} readOnly={isFetchingPincode} />
                     </div>
                 </div>
                 <DialogFooter>
@@ -216,9 +265,6 @@ const ProfileInformation = ({ user, setUser }: { user: User & { shippingAddress?
         setUseSameAddress(checked);
         if (checked) {
              setUser({ ...user, billingAddress: user.shippingAddress });
-        } else {
-             // Optionally clear billing address when untoggled, or leave as is
-             // setUser({ ...user, billingAddress: null });
         }
     };
     
@@ -461,3 +507,4 @@ export default function MyAccountPage() {
   );
 }
 
+    
