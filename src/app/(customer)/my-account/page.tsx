@@ -8,8 +8,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, User as UserIcon, Shield } from 'lucide-react';
+import { Loader2, User as UserIcon, Shield, Package, ShoppingCart, Headset } from 'lucide-react';
 import Link from 'next/link';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 // Mock user data for local testing in Firestudio
 const mockUser: User = {
@@ -20,6 +22,31 @@ const mockUser: User = {
   created_at: new Date().toISOString(),
   email: 'arijit1roy@gmail.com',
 };
+
+const mockRecentOrders = [
+  {
+    id: "ORD-003",
+    date: "2023-06-25",
+    status: "Fulfilled",
+    total: "₹3,500.00",
+  },
+  {
+    id: "ORD-001",
+    date: "2023-06-23",
+    status: "Fulfilled",
+    total: "₹2,500.00",
+  },
+];
+
+const getStatusBadgeVariant = (status: string) => {
+  switch (status) {
+    case "Pending": return "secondary";
+    case "Fulfilled": return "default";
+    case "Canceled": return "destructive";
+    default: return "outline";
+  }
+}
+
 
 export default function MyAccountPage() {
   const [user] = useState<User | null>(mockUser);
@@ -37,20 +64,23 @@ export default function MyAccountPage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="flex-1 bg-gray-50 dark:bg-gray-900/50">
-        <div className="container mx-auto max-w-4xl px-4 py-12">
+        <div className="container mx-auto max-w-6xl px-4 py-12">
           <div className="mb-8">
             <h1 className="text-4xl font-extrabold tracking-tight">My Account</h1>
             <p className="text-muted-foreground">Manage your profile, orders, and account settings.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-1">
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-lg">{user.user_metadata?.full_name || 'User'}</CardTitle>
                         <CardDescription>{user.email}</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
+                    <CardContent className="space-y-3 text-sm">
+                        <Link href="/my-account" className="flex items-center text-primary font-semibold">
+                            Profile Settings
+                        </Link>
                         <Link href="/order-history" className="flex items-center text-muted-foreground hover:text-primary transition-colors">
                             Order History
                         </Link>
@@ -60,7 +90,41 @@ export default function MyAccountPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="md:col-span-2 space-y-8">
+            <div className="lg:col-span-3 space-y-8">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><ShoppingCart className="h-5 w-5"/> Recent Orders</CardTitle>
+                        <CardDescription>A summary of your most recent orders.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Order ID</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {mockRecentOrders.map((order) => (
+                                <TableRow key={order.id}>
+                                    <TableCell className="font-medium">{order.id}</TableCell>
+                                    <TableCell>{order.date}</TableCell>
+                                    <TableCell><Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge></TableCell>
+                                    <TableCell className="text-right">{order.total}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                       </Table>
+                    </CardContent>
+                    <CardFooter>
+                       <Button variant="outline" asChild>
+                         <Link href="/order-history">View All Orders</Link>
+                       </Button>
+                    </CardFooter>
+                </Card>
+
                  <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><UserIcon className="h-5 w-5"/> Profile Information</CardTitle>
