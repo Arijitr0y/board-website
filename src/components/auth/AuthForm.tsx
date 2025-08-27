@@ -15,7 +15,6 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const { setIsLoading } = useLoading();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-  const [title, setTitle] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const [msg, setMsg] = useState<string | null>(null);
@@ -36,7 +35,6 @@ export default function AuthForm({ mode }: { mode: Mode }) {
           emailRedirectTo: `${location.origin}/auth/callback`,
           data: mode === 'signup' ? {
             full_name: name,
-            title: title,
             phone: phoneNumber
           } : undefined,
         },
@@ -63,16 +61,6 @@ export default function AuthForm({ mode }: { mode: Mode }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-              />
-          </div>
-          <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                  id="title"
-                  type="text"
-                  placeholder="Hardware Engineer"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
               />
           </div>
             <div className="space-y-2">
