@@ -12,10 +12,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { LoadingLink } from "@/context/loading-context";
 import { createClient } from "@/lib/supabase/client";
 import { SignOutButton } from "../auth/SignOutButton";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export function Header() {
   const { items } = useCart();
@@ -32,6 +34,13 @@ export function Header() {
     checkUser();
   }, [])
   
+  const getInitials = (name: string) => {
+    if (!name) return "?";
+    const names = name.split(' ');
+    const initials = names.map(n => n[0]).join('');
+    return initials.toUpperCase().slice(0, 2);
+  }
+
   return (
     <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
       <div className="container mx-auto px-4">
@@ -97,12 +106,33 @@ export function Header() {
             
             {!loading && (
                 user ? (
-                    <div className="flex items-center gap-4">
-                        <Button asChild variant="secondary">
-                            <LoadingLink href="/admin/dashboard">Dashboard</LoadingLink>
-                        </Button>
-                        <SignOutButton />
-                    </div>
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback>{getInitials(user.user_metadata?.full_name)}</AvatarFallback>
+                            </Avatar>
+                          </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                         <DropdownMenuLabel>
+                            <p className="font-medium">{user.user_metadata?.full_name}</p>
+                            <p className="text-xs text-muted-foreground font-normal">{user.email}</p>
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                              <LoadingLink href="/admin/dashboard">Dashboard</LoadingLink>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                              <LoadingLink href="/my-account">My Account</LoadingLink>
+                          </DropdownMenuItem>
+                           <DropdownMenuItem asChild>
+                              <LoadingLink href="/order-history">Order History</LoadingLink>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild><SignOutButton /></DropdownMenuItem>
+                      </DropdownMenuContent>
+                   </DropdownMenu>
                 ) : (
                      <div className="flex items-center gap-2">
                         <Button asChild>

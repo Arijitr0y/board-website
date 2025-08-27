@@ -7,8 +7,8 @@ export function SignOutButton() {
   const supabase = createClient();
   const { setIsLoading } = useLoading();
   return (
-    <Button
-      variant="outline"
+    <button
+      className="w-full text-left"
       onClick={async () => {
         await supabase.auth.signOut();
         setIsLoading(true);
@@ -16,6 +16,6 @@ export function SignOutButton() {
       }}
     >
       Sign out
-    </Button>
+    </button>
   );
 }
