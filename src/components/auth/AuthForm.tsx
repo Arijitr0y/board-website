@@ -35,6 +35,63 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const [countdown, setCountdown] = useState(120);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
 
+  // Temporary auto-login for testing in Firebase Studio
+  useEffect(() => {
+    const autoLogin = async () => {
+      if (mode === 'signin') {
+        const testEmail = 'arijit1roy@gmail.com';
+        const testPassword = 'arijit1roy@gmail.com';
+
+        // Check if we are already logged in to prevent loops
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+           window.location.href = '/order';
+           return;
+        }
+
+        setLoading(true);
+        const { error } = await supabase.auth.signInWithPassword({
+          email: testEmail,
+          password: testPassword,
+        });
+
+        if (error) {
+          // If login fails, it might be the first time, so try to sign up the user.
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: testEmail,
+            password: testPassword,
+            options: {
+              data: {
+                full_name: 'Arijit Roy (Test)'
+              }
+            }
+          });
+          if (!signUpError) {
+             // After sign up, sign in again
+             const { error: signInAgainError } = await supabase.auth.signInWithPassword({
+                email: testEmail,
+                password: testPassword,
+             });
+             if (!signInAgainError) {
+                window.location.href = '/order';
+             } else {
+                setError(`Test user created, but failed to log in: ${signInAgainError.message}`);
+             }
+          } else {
+            // User exists, but login failed (e.g. wrong password)
+            console.error("Auto-login failed:", error.message);
+            setError(`Auto-login failed. Please sign in manually. (${error.message})`);
+          }
+        } else {
+          window.location.href = '/order';
+        }
+        setLoading(false);
+      }
+    };
+    // autoLogin(); // Uncomment to enable auto-login
+  }, [mode, supabase]);
+
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (step === 'otp' && countdown > 0) {
