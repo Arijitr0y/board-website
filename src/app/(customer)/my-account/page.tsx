@@ -189,6 +189,10 @@ const AddressDialog = ({ address, onSave, children, isEditing }: { address: Addr
                         <Label htmlFor="country">Country</Label>
                         <Input id="country" value={formData.country || ''} onChange={handleInputChange} disabled={isFetchingPincode} />
                     </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input id="phone" value={formData.phone || ''} onChange={handleInputChange} />
+                    </div>
                 </div>
                 <DialogFooter>
                     <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
@@ -216,11 +220,13 @@ const AddressCard = ({ title, address, onUpdate, isEditing }: { title: string, a
             {address ? (
                 <div className="text-sm text-muted-foreground space-y-1">
                     <p className="font-semibold text-foreground">{address.fullName}</p>
+                    {address.companyName && <p>{address.companyName}</p>}
                     <p>{address.addressLine1}</p>
                     {address.addressLine2 && <p>{address.addressLine2}</p>}
                     <p>{address.city}, {address.state} {address.zip}</p>
                     <p>{address.country}</p>
                     <p>Phone: {address.phone}</p>
+                    {address.gstNumber && <p>GST: {address.gstNumber}</p>}
                 </div>
             ) : (
                 <AddressDialog address={address} onSave={onUpdate} isEditing={isEditing}>
@@ -334,6 +340,16 @@ const ProfileInformation = ({ user, profile, onProfileUpdate }: { user: User | n
                     <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
                         <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} disabled={!isEditing} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="company_name">Company Name <span className="text-muted-foreground">(Optional)</span></Label>
+                        <Input id="company_name" value={formData.company_name || ''} onChange={handleInputChange} disabled={!isEditing} />
+                    </div>
+                </div>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="gst_number">GST Number <span className="text-muted-foreground">(Optional)</span></Label>
+                        <Input id="gst_number" value={formData.gst_number || ''} onChange={handleInputChange} disabled={!isEditing} />
                     </div>
                 </div>
             </div>
@@ -523,19 +539,35 @@ export default function MyAccountPage() {
           setProfile(profileData);
         } else if (error) {
           console.error("Error fetching profile:", error);
-          router.push('/login'); // Or show an error
+          // Don't redirect, maybe show an error to create a profile
         }
       } else {
         router.push('/login');
       }
       setLoading(false);
     };
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          fetchUserAndProfile();
+        } else if (event === 'SIGNED_OUT') {
+          router.push('/login');
+        }
+      }
+    );
+    
     fetchUserAndProfile();
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+
   }, [router, supabase]);
 
   if (loading || !user || !profile) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );

@@ -30,8 +30,8 @@ export interface CartItem {
 
 export type Address = {
   fullName: string;
-  companyName?: string;
-  gstNumber?: string;
+  companyName: string;
+  gstNumber: string;
   addressLine1: string;
   addressLine2?: string;
   city: string;
