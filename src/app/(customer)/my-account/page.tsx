@@ -538,19 +538,20 @@ export default function MyAccountPage() {
         if (error) {
           console.error("Error fetching profile:", error);
         }
-
-        if (data) {
-          setProfile(data);
+        
+        const profileData = data;
+        if (profileData) {
+          setProfile(profileData);
         } else {
-          // If no profile exists, create a default one to avoid errors
+          // If no profile exists, create a default one from user metadata
           setProfile({
             id: user.id,
-            full_name: user.user_metadata.full_name || user.email,
-            phone: user.user_metadata.phone || null,
-            company_name: null,
-            gst_number: null,
-            shipping_address: null,
-            billing_address: null,
+            full_name: user.user_metadata?.full_name || user.email || '',
+            phone: user.user_metadata?.phone || null,
+            company_name: user.user_metadata?.company_name || null,
+            gst_number: user.user_metadata?.gst_number || null,
+            shipping_address: user.user_metadata?.shipping_address || null,
+            billing_address: user.user_metadata?.billing_address || null,
           });
         }
       } else {
@@ -635,5 +636,3 @@ export default function MyAccountPage() {
     </div>
   );
 }
-
-    

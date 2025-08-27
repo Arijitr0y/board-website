@@ -60,6 +60,14 @@ const AddressForm = ({ address, setAddress }: { address: Partial<Address>, setAd
     
     return (
         <div className="space-y-4">
+             <div className="space-y-2">
+                <Label htmlFor="companyName">Company Name <span className="text-muted-foreground">(Optional)</span></Label>
+                <Input id="companyName" value={address.companyName || ''} onChange={handleInputChange} />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="gstNumber">GST Number <span className="text-muted-foreground">(Optional)</span></Label>
+                <Input id="gstNumber" value={address.gstNumber || ''} onChange={handleInputChange} />
+            </div>
             <div className="space-y-2">
                 <Label htmlFor="addressLine1">Address Line 1</Label>
                 <Input id="addressLine1" value={address.addressLine1 || ''} onChange={handleInputChange} required />
@@ -283,6 +291,8 @@ export default function AuthForm({ mode }: { mode: Mode }) {
                 // We re-supply all metadata here
                 full_name: name,
                 phone: phoneNumber,
+                company_name: address.companyName || null,
+                gst_number: address.gstNumber || null,
                 // And add the new address
                 shipping_address: completeAddress,
                 billing_address: completeAddress,
@@ -426,7 +436,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     return (
         <form onSubmit={handleAddressSubmit} className="space-y-4">
             <div className="space-y-2 text-center">
-                <Label>Your Shipping Address</Label>
+                <Label className="text-base">Your Shipping Address</Label>
                 <p className="text-sm text-muted-foreground">Enter your primary shipping address to continue.</p>
             </div>
             <AddressForm address={address} setAddress={setAddress} />
@@ -441,7 +451,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     return (
         <form onSubmit={handlePasswordSetSubmit} className="space-y-4">
             <div className="space-y-2 text-center">
-                <Label>Create Your Password</Label>
+                <Label className="text-base">Create Your Password</Label>
                 <p className="text-sm text-muted-foreground">Your email has been verified. Set a password to complete your account.</p>
             </div>
             <div className="space-y-2">
