@@ -1,10 +1,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
 import { Header } from '@/components/pcb-flow/header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,42 +11,26 @@ import { Label } from '@/components/ui/label';
 import { Loader2, User as UserIcon, Shield } from 'lucide-react';
 import Link from 'next/link';
 
+// Mock user data for local testing in Firestudio
+const mockUser: User = {
+  id: 'mock-user-id',
+  app_metadata: { provider: 'email' },
+  user_metadata: { full_name: 'Arijit Roy (Test)', phone: '+91 12345 67890' },
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+  email: 'arijit1roy@gmail.com',
+};
+
 export default function MyAccountPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const supabase = createClient();
+  const [user] = useState<User | null>(mockUser);
 
-  useEffect(() => {
-    // This listener will fire immediately with the current session, if one exists.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setUser(session.user);
-      } else {
-        // If no session is found after the check, redirect to login.
-        router.push('/login');
-      }
-      setLoading(false);
-    });
-
-    // Cleanup the subscription when the component unmounts
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [router, supabase]);
-
-  if (loading) {
+  if (!user) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <p className="ml-4">Redirecting to login...</p>
       </div>
     );
-  }
-  
-  if (!user) {
-    // This case will likely be brief as the redirect should have already happened.
-    // Or it's shown while redirecting.
-    return null; 
   }
 
   return (
