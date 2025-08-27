@@ -1,22 +1,22 @@
 
 'use client';
 
-import { FormEvent, useState, useEffect, useRef } from 'react';
+import { FormEvent, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { useLoading } from '@/context/loading-context';
 import { Label } from '../ui/label';
 
 type Mode = 'signin' | 'signup';
 
 export default function AuthForm({ mode }: { mode: Mode }) {
   const supabase = createClient();
-  const { setIsLoading } = useLoading();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
+  
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,6 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         email: email,
         options: {
           shouldCreateUser: mode === 'signup',
-          emailRedirectTo: `${location.origin}/auth/callback`,
           data: mode === 'signup' ? {
             full_name: name,
             phone: phoneNumber
@@ -40,13 +39,62 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         },
       });
       if (error) throw error;
-      setMsg(`Magic link sent to ${email}. Check your inbox!`);
+      setMsg(`OTP sent to ${email}. Check your inbox!`);
+      setStep('otp');
     } catch (err: any) {
-      setError(err.message ?? 'Failed to send magic link.');
+      setError(err.message ?? 'Failed to send OTP.');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleOtpSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMsg(null);
+
+    try {
+       const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email',
+      });
+
+      if (error) throw error;
+
+      // On success, redirect to dashboard
+      window.location.href = '/admin/dashboard';
+
+    } catch (err: any) {
+       setError(err.message ?? 'Failed to verify OTP.');
+    } finally {
+       setLoading(false);
+    }
+  };
+
+  if (step === 'otp') {
+    return (
+        <form onSubmit={handleOtpSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="otp">Enter OTP</Label>
+                <Input
+                id="otp"
+                type="text"
+                placeholder="123456"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+                />
+            </div>
+            <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Verifying...' : 'Verify OTP & Sign In'}
+            </Button>
+            {error && <p className="text-sm text-center text-destructive pt-2">{error}</p>}
+            {msg && <p className="text-sm text-center text-muted-foreground pt-2">{msg}</p>}
+        </form>
+    );
+  }
 
   return (
     <form onSubmit={handleEmailSubmit} className="space-y-4">
@@ -63,7 +111,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
                   required
               />
           </div>
-            <div className="space-y-2">
+          <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
               <Input
                   id="phone"
@@ -87,7 +135,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         />
       </div>
       <Button type="submit" disabled={loading} className="w-full">
-        {loading ? 'Sending...' : 'Send Magic Link'}
+        {loading ? 'Sending...' : 'Send OTP'}
       </Button>
       {error && <p className="text-sm text-center text-destructive pt-2">{error}</p>}
       {msg && <p className="text-sm text-center text-muted-foreground pt-2">{msg}</p>}
