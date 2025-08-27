@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Loader2, User as UserIcon, Shield } from 'lucide-react';
 import Link from 'next/link';
 
@@ -18,36 +17,25 @@ export default function MyAccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.getUser();
-
-      // The key change is here: we only redirect if the auth check completes
-      // and we definitively have no user. We don't redirect on the initial
-      // loading state where data.user might be temporarily null.
-      if (error || !data.user) {
-        router.push('/login');
+    // This listener will fire immediately with the current session, if one exists.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setUser(session.user);
       } else {
-        setUser(data.user);
+        // If no session is found after the check, redirect to login.
+        router.push('/login');
       }
       setLoading(false);
-    };
+    });
 
-    const checkSession = async () => {
-        const supabase = createClient();
-        const { data } = await supabase.auth.getSession();
-        if (!data.session) {
-            router.push('/login');
-        } else {
-            setUser(data.session.user);
-            setLoading(false);
-        }
+    // Cleanup the subscription when the component unmounts
+    return () => {
+      subscription?.unsubscribe();
     };
-
-    checkSession();
-  }, [router]);
+  }, [router, supabase]);
 
   if (loading) {
     return (
@@ -59,6 +47,7 @@ export default function MyAccountPage() {
   
   if (!user) {
     // This case will likely be brief as the redirect should have already happened.
+    // Or it's shown while redirecting.
     return null; 
   }
 
@@ -122,7 +111,9 @@ export default function MyAccountPage() {
                         <CardDescription>Manage your password and secure your account.</CardDescription>
                     </CardHeader>
                      <CardContent>
-                        <Button variant="outline">Change Password</Button>
+                        <Button variant="outline" asChild>
+                            <Link href="/forgot-password">Change Password</Link>
+                        </Button>
                     </CardContent>
                 </Card>
             </div>
