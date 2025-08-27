@@ -1,4 +1,3 @@
-
 'use client';
 import {
     Card,
@@ -22,6 +21,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { createClient } from '@/lib/supabase/client';
+import { redirect } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import type { User } from "@supabase/supabase-js";
   
 const chartData = [
   { month: "Jan", revenue: 186000 },
@@ -67,8 +70,30 @@ const recentOrders = [
 ];
 
 export default function Dashboard() {
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const checkUser = async () => {
+            const supabase = createClient();
+            const { data } = await supabase.auth.getUser();
+            if (!data.user) {
+                redirect('/login');
+            } else {
+                setUser(data.user);
+            }
+            setLoading(false);
+        };
+        checkUser();
+    }, []);
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
+
     return (
         <div className="grid gap-4 md:gap-8 auto-rows-max">
+            <div className="text-lg">Welcome back, {user?.email}</div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

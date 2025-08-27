@@ -1,21 +1,35 @@
-
 "use client";
 
 import Link from "next/link";
-import { CircuitBoard, ShoppingCart, ChevronDown } from "lucide-react";
+import { CircuitBoard, ShoppingCart, ChevronDown, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { LoadingLink } from "@/context/loading-context";
+import { createClient } from "@/lib/supabase/client";
+import { SignOutButton } from "../auth/SignOutButton";
 
 export function Header() {
   const { items } = useCart();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user);
+        setLoading(false);
+    };
+    checkUser();
+  }, [])
   
   return (
     <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
@@ -80,9 +94,26 @@ export function Header() {
                 </LoadingLink>
             </Button>
             
-            <Button asChild>
-                <LoadingLink href="/admin/dashboard">Admin</LoadingLink>
-            </Button>
+            {!loading && (
+                user ? (
+                    <div className="flex items-center gap-4">
+                        <Button asChild variant="secondary">
+                            <LoadingLink href="/admin/dashboard">Dashboard</LoadingLink>
+                        </Button>
+                        <SignOutButton />
+                    </div>
+                ) : (
+                     <div className="flex items-center gap-2">
+                        <Button asChild variant="ghost">
+                            <LoadingLink href="/login">Log In</LoadingLink>
+                        </Button>
+                        <Button asChild>
+                            <LoadingLink href="/signup">Sign Up</LoadingLink>
+                        </Button>
+                     </div>
+                )
+            )}
+            
           </div>
         </div>
       </div>
